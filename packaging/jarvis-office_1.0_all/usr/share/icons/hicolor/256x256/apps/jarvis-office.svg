@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Background -->
+  <rect width="256" height="256" rx="48" fill="#1a1a2e"/>
+  <!-- Outer ring -->
+  <circle cx="128" cy="128" r="100" fill="none" stroke="#2d2d5e" stroke-width="2"/>
+  <!-- Diamond shape -->
+  <path d="M128 44 L212 128 L128 212 L44 128 Z" fill="#7c3aed" opacity="0.25"/>
+  <path d="M128 44 L212 128 L128 212 L44 128 Z" fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+  <!-- Inner gem -->
+  <path d="M128 80 L172 128 L128 176 L84 128 Z" fill="#a78bfa" opacity="0.5"/>
+  <!-- Center circle -->
+  <circle cx="128" cy="128" r="22" fill="#7c3aed"/>
+  <circle cx="128" cy="128" r="14" fill="#c4b5fd"/>
+  <!-- Accent dots -->
+  <circle cx="128" cy="44" r="5" fill="#a78bfa"/>
+  <circle cx="212" cy="128" r="5" fill="#a78bfa"/>
+  <circle cx="128" cy="212" r="5" fill="#a78bfa"/>
+  <circle cx="44" cy="128" r="5" fill="#a78bfa"/>
+  <!-- Text -->
+  <text x="128" y="238" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#e2e8f0" letter-spacing="2">JARVIS</text>
+</svg>
