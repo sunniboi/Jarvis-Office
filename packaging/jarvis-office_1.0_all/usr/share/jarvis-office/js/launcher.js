@@ -1,14 +1,14 @@
 // ===== JARVIS LAUNCHER =====
 
 const APPS = {
-  write:    { name: 'Jarvis Write',    color: 'var(--write)',    init: initWrite },
-  calc:     { name: 'Jarvis Calc',     color: 'var(--calc)',     init: initCalc },
-  matrix:   { name: 'Jarvis Matrix',   color: 'var(--matrix)',   init: initMatrix },
-  draw:     { name: 'Jarvis Draw',     color: 'var(--draw)',     init: initDraw },
-  present:  { name: 'Jarvis Present',  color: 'var(--present)',  init: initPresent },
-  mail:     { name: 'Jarvis Mail',     color: 'var(--mail)',     init: initMail },
-  notes:    { name: 'Jarvis Notes',    color: 'var(--notes)',    init: initNotes },
-  calendar: { name: 'Jarvis Calendar', color: 'var(--calendar)', init: initCalendar },
+  write:    { name: 'Jarvis Write',    color: 'var(--write)',    init: (c) => initWrite(c) },
+  calc:     { name: 'Jarvis Calc',     color: 'var(--calc)',     init: (c) => initCalc(c) },
+  matrix:   { name: 'Jarvis Matrix',   color: 'var(--matrix)',   init: (c) => initMatrix(c) },
+  draw:     { name: 'Jarvis Draw',     color: 'var(--draw)',     init: (c) => initDraw(c) },
+  present:  { name: 'Jarvis Present',  color: 'var(--present)',  init: (c) => initPresent(c) },
+  mail:     { name: 'Jarvis Mail',     color: 'var(--mail)',     init: (c) => initMail(c) },
+  notes:    { name: 'Jarvis Notes',    color: 'var(--notes)',    init: (c) => initNotes(c) },
+  calendar: { name: 'Jarvis Calendar', color: 'var(--calendar)', init: (c) => initCalendar(c) },
 };
 
 let currentApp = null;
