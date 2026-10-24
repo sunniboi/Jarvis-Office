@@ -19,7 +19,12 @@
           </svg>
           <span>Jarvis Office</span>
         </div>
-        <div class="launcher-meta">
+        <div class="launcher-meta" style="display:flex;align-items:center;gap:16px;">
+          <button class="search-trigger-btn" onclick="openSearch()" title="Globale Suche (Strg+K)">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.5"/><line x1="8.5" y1="8.5" x2="13" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Suche
+            <kbd>Strg+K</kbd>
+          </button>
           <span id="clock"></span>
         </div>
       </header>
@@ -103,6 +108,7 @@
   <script src="js/utils.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/launcher.js"></script>
+  <script src="js/search.js"></script>
   <script src="js/write.js"></script>
   <script src="js/calc.js"></script>
   <script src="js/matrix.js"></script>
