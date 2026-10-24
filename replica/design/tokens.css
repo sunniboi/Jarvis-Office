@@ -1,0 +1,80 @@
+/* ===== JARVIS OFFICE v2 — DESIGN TOKENS ===== */
+/* Generated from replica/design/tokens.json — all contrast pairs AA+ verified */
+
+:root {
+  /* Color: Base */
+  --bg:           #0d0d1a;
+  --bg-elevated:  #161628;
+  --bg-sunken:    #0a0a14;
+  --surface:      #1c1c36;
+  --surface-hi:   #242448;
+
+  /* Color: Borders */
+  --border:       #2a2a52;
+  --border-hi:    #3a3a72;
+
+  /* Color: Text */
+  --text:         #e2e8f0;
+  --text-muted:   #8b9cb5;
+  --text-faint:   #586880;
+
+  /* Color: Accent */
+  --accent:       #7c3aed;
+  --accent-hi:    #9d5cf5;
+  --on-accent:    #ffffff;
+
+  /* Color: Semantic */
+  --danger:       #c81e1e;
+  --on-danger:    #ffffff;
+  --success:      #166534;
+  --on-success:   #ffffff;
+  --warning:      #f59e0b;
+
+  /* Color: App identity */
+  --app-write:    #3b82f6;
+  --app-calc:     #10b981;
+  --app-matrix:   #f59e0b;
+  --app-draw:     #ec4899;
+  --app-present:  #8b5cf6;
+  --app-mail:     #06b6d4;
+  --app-notes:    #f97316;
+  --app-calendar: #14b8a6;
+
+  /* Typography */
+  --font-sans:    Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+  --text-xs:      11px;
+  --text-sm:      12px;
+  --text-md:      13px;
+  --text-lg:      14px;
+  --text-xl:      16px;
+  --text-2xl:     20px;
+  --text-3xl:     24px;
+
+  /* Spacing (4px base) */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+
+  /* Radius */
+  --r-sm:  4px;
+  --r-md:  8px;
+  --r-lg:  12px;
+  --r-full: 9999px;
+
+  /* Shadow */
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.30);
+  --shadow-md:  0 4px 24px rgba(0,0,0,0.45);
+  --shadow-lg:  0 8px 48px rgba(0,0,0,0.65);
+  --shadow-glow: 0 0 0 2px rgba(124,58,237,0.35);
+
+  /* Layout */
+  --h-titlebar:  38px;
+  --h-toolbar:   44px;
+  --h-statusbar: 22px;
+  --w-sidebar:   220px;
+}
