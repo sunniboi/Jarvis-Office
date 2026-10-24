@@ -146,6 +146,8 @@ const ICONS = {
   eye:         '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
   link:        '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>',
   calendarIcon:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  circle:      '<circle cx="12" cy="12" r="9"/>',
+  clock:       '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/>',
 };
 
 function icon(name, size = 16, extra = '') {
