@@ -1,0 +1,3211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jarvis Office</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+/* ===== JARVIS OFFICE v2 — DESIGN SYSTEM ===== */
+
+/* --- Tokens --- */
+:root {
+  --bg:           #0d0d1a;
+  --bg-elevated:  #161628;
+  --bg-sunken:    #0a0a14;
+  --surface:      #1c1c36;
+  --surface-hi:   #242448;
+  --border:       #2a2a52;
+  --border-hi:    #3a3a72;
+  --text:         #e2e8f0;
+  --text-muted:   #8b9cb5;
+  --text-faint:   #586880;
+  --accent:       #7c3aed;
+  --accent-hi:    #9d5cf5;
+  --on-accent:    #ffffff;
+  --danger:       #c81e1e;
+  --on-danger:    #ffffff;
+  --success:      #166534;
+  --on-success:   #ffffff;
+  --warning:      #f59e0b;
+
+  --app-write:    #3b82f6;
+  --app-calc:     #10b981;
+  --app-matrix:   #f59e0b;
+  --app-draw:     #ec4899;
+  --app-present:  #8b5cf6;
+  --app-mail:     #06b6d4;
+  --app-notes:    #f97316;
+  --app-calendar: #14b8a6;
+
+  --font-sans: Inter, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.3);
+  --shadow-md: 0 4px 24px rgba(0,0,0,.45);
+  --shadow-lg: 0 8px 48px rgba(0,0,0,.65);
+
+  --h-titlebar:  38px;
+  --h-toolbar:   44px;
+  --h-statusbar: 22px;
+  --w-sidebar:   220px;
+}
+
+/* --- Reset --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; }
+#app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+button { font-family: inherit; }
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-sunken); }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ========== LAUNCHER ========== */
+.launcher { height: 100vh; display: flex; flex-direction: column; }
+
+.launcher-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px; border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated); flex-shrink: 0;
+}
+.logo { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 700; color: var(--text); }
+.launcher-right { display: flex; align-items: center; gap: 12px; }
+#clock { color: var(--text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.launcher-grid {
+  flex: 1; display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; padding: 28px; overflow-y: auto; align-content: start;
+}
+
+.app-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 22px 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  cursor: pointer; transition: border-color 150ms ease, background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  text-align: center;
+}
+.app-card:hover { border-color: var(--accent); background: var(--surface-hi); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.app-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.app-card:active { transform: translateY(0); box-shadow: none; }
+
+.app-icon { width: 52px; height: 52px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; }
+.app-icon svg { width: 32px; height: 32px; }
+.app-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.app-desc { font-size: 11px; color: var(--text-muted); }
+
+.launcher-footer {
+  padding: 12px 28px; border-top: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text-faint); font-size: 11px;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+
+/* ========== GLOBAL APP CHROME ========== */
+.app-container { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.app-container.hidden { display: none; }
+
+.app-titlebar {
+  height: var(--h-titlebar); background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 10px; gap: 8px; flex-shrink: 0;
+}
+.back-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; background: none; border: none;
+  color: var(--text-muted); cursor: pointer; border-radius: var(--r-sm);
+  transition: color 120ms, background 120ms;
+}
+.back-btn:hover { color: var(--text); background: var(--surface); }
+.back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.back-btn svg { width: 18px; height: 18px; }
+
+.app-title { font-size: 13px; font-weight: 600; }
+.filename { font-size: 12px; color: var(--text-muted); }
+.titlebar-actions { margin-left: auto; display: flex; gap: 4px; align-items: center; }
+
+.toolbar {
+  height: var(--h-toolbar); background: var(--bg-sunken);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 6px; gap: 1px;
+  flex-shrink: 0; overflow-x: auto;
+}
+
+.tb-btn {
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; padding: 5px 7px; border-radius: var(--r-sm);
+  font-size: 12px; white-space: nowrap; font-weight: 500;
+  transition: color 100ms, background 100ms;
+  display: flex; align-items: center; gap: 4px; height: 32px;
+}
+.tb-btn:hover { color: var(--text); background: var(--surface); }
+.tb-btn.active { color: var(--accent-hi); background: var(--surface-hi); }
+.tb-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tb-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.tb-sep { width: 1px; height: 22px; background: var(--border); margin: 0 3px; flex-shrink: 0; }
+
+.tb-select {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); border-radius: var(--r-sm); padding: 3px 6px;
+  font-size: 12px; font-family: var(--font-sans); cursor: pointer; height: 28px;
+}
+.tb-select:focus { outline: none; border-color: var(--accent); }
+
+/* ========== BUTTONS ========== */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--r-md); border: none;
+  font-size: 13px; font-weight: 500; font-family: var(--font-sans);
+  cursor: pointer; transition: background 150ms, color 150ms;
+}
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:hover { background: var(--accent-hi); }
+.btn-ghost { background: none; color: var(--text-muted); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--surface); color: var(--text); }
+.btn-danger { background: var(--danger); color: var(--on-danger); }
+.btn-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; background: none; border: none;
+  color: var(--text-muted); cursor: pointer; border-radius: var(--r-sm);
+  transition: color 120ms, background 120ms;
+}
+.btn-icon:hover { color: var(--text); background: var(--surface); }
+.btn-icon:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-icon svg { width: 18px; height: 18px; }
+
+/* ========== MODAL ========== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  z-index: 1000; display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(3px); animation: fadeIn 150ms ease;
+}
+.modal {
+  background: var(--surface); border: 1px solid var(--border-hi);
+  border-radius: var(--r-lg); padding: 22px; min-width: 340px; max-width: 92vw;
+  box-shadow: var(--shadow-lg); animation: slideUp 180ms ease;
+}
+.modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+
+/* ========== STATUSBAR ========== */
+.statusbar {
+  height: var(--h-statusbar); background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 10px; gap: 14px;
+  font-size: 11px; color: var(--text-faint); flex-shrink: 0;
+}
+.statusbar span { white-space: nowrap; }
+
+/* ========== SIDEBAR ========== */
+.sidebar {
+  background: var(--bg-elevated); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+}
+.sidebar-header {
+  padding: 10px 12px; font-size: 10px; font-weight: 700; letter-spacing: .8px;
+  text-transform: uppercase; color: var(--text-faint);
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-list { flex: 1; overflow-y: auto; }
+.sidebar-item {
+  padding: 7px 10px; cursor: pointer; font-size: 13px; color: var(--text-muted);
+  border-radius: var(--r-sm); margin: 2px 4px;
+  display: flex; align-items: center; gap: 8px;
+  transition: background 100ms, color 100ms;
+}
+.sidebar-item:hover { background: var(--surface); color: var(--text); }
+.sidebar-item.active { background: var(--surface-hi); color: var(--accent-hi); }
+
+/* ========== FORM ========== */
+input[type=text], input[type=email], input[type=number], input[type=search], textarea, select {
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  border-radius: var(--r-md); padding: 7px 10px;
+  font-size: 13px; font-family: var(--font-sans); width: 100%;
+}
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,58,237,.18); }
+label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; display: block; }
+.form-group { margin-bottom: 14px; }
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ========== UTILITIES ========== */
+.hidden { display: none !important; }
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.overflow-hidden { overflow: hidden; }
+
+/* ========== WRITE ========== */
+.write-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.write-body { flex: 1; overflow-y: auto; background: var(--bg-sunken); display: flex; justify-content: center; padding: 24px 16px; }
+.write-page {
+  background: #fff; color: #111827; width: 794px; min-height: 1040px;
+  padding: 72px 80px; border-radius: 2px;
+  box-shadow: 0 2px 24px rgba(0,0,0,.55);
+  outline: none; font-family: Georgia, serif; font-size: 14px; line-height: 1.7;
+}
+.write-page h1 { font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+.write-page h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.write-page h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.write-page p  { margin-bottom: 10px; }
+.write-page ul, .write-page ol { margin: 8px 0 8px 24px; }
+.write-page table { border-collapse: collapse; margin: 10px 0; width: 100%; }
+.write-page td, .write-page th { border: 1px solid #d1d5db; padding: 6px 10px; }
+.write-page th { background: #f9fafb; font-weight: 600; }
+.write-page blockquote { border-left: 3px solid #9ca3af; margin: 10px 0 10px 0; padding: 4px 16px; color: #4b5563; font-style: italic; }
+.write-page pre, .write-page code { font-family: monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+.write-page hr { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
+.write-page a { color: #2563eb; }
+
+/* ========== CALC ========== */
+.calc-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.calc-formula-bar {
+  height: 32px; background: var(--bg-sunken); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 8px; gap: 8px; flex-shrink: 0;
+}
+.calc-cell-ref {
+  width: 68px; background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 2px 6px; font-size: 12px; font-family: var(--font-mono);
+  border-radius: var(--r-sm); text-align: center; height: 24px;
+}
+.calc-formula-input {
+  flex: 1; background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 2px 8px; font-size: 13px; font-family: var(--font-mono);
+  border-radius: var(--r-sm); height: 24px;
+}
+.calc-formula-input:focus { outline: none; border-color: var(--accent); }
+.calc-body { flex: 1; overflow: auto; position: relative; }
+.calc-grid-wrap { display: inline-block; min-width: 100%; }
+.calc-header-row { display: flex; position: sticky; top: 0; z-index: 10; }
+.col-header {
+  width: 100px; height: 22px; background: var(--bg-elevated);
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--text-faint); font-weight: 600; flex-shrink: 0;
+  user-select: none; cursor: pointer;
+}
+.col-header:hover { background: var(--surface); color: var(--text-muted); }
+.row-header {
+  width: 48px; height: 22px; background: var(--bg-elevated);
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--text-faint); font-weight: 600; flex-shrink: 0; user-select: none;
+}
+.corner-header { width: 48px; height: 22px; background: var(--bg-elevated); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.calc-row { display: flex; }
+.calc-cell {
+  width: 100px; height: 22px; border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border); padding: 0 4px;
+  font-size: 12px; font-family: var(--font-mono); color: var(--text);
+  display: flex; align-items: center; flex-shrink: 0; cursor: cell;
+  white-space: nowrap; overflow: hidden; background: var(--bg); position: relative;
+}
+.calc-cell:hover { background: var(--surface); }
+.calc-cell.selected { background: rgba(124,58,237,.15); outline: 2px solid var(--accent); outline-offset: -1px; }
+.calc-cell.in-range { background: rgba(124,58,237,.07); }
+.calc-cell.editing { background: var(--bg) !important; outline: 2px solid var(--accent-hi) !important; outline-offset: -1px; }
+.calc-cell input { width: 100%; height: 100%; background: transparent; border: none; outline: none; color: var(--text); font-size: 12px; font-family: var(--font-mono); padding: 0; }
+.cell-formula { color: var(--app-calc); }
+.cell-error { color: var(--danger); }
+.cell-number { justify-content: flex-end; }
+
+/* ========== MATRIX ========== */
+.matrix-layout { display: flex; flex: 1; overflow: hidden; flex-direction: column; }
+.matrix-toolbar-ext { height: 36px; background: var(--bg-sunken); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 8px; gap: 6px; flex-shrink: 0; }
+.matrix-search { flex: 1; max-width: 280px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-md); padding: 4px 10px; font-size: 12px; height: 28px; }
+.matrix-search:focus { outline: none; border-color: var(--accent); }
+.matrix-table-wrap { flex: 1; overflow: auto; }
+.matrix-table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+.matrix-table th {
+  background: var(--bg-elevated); color: var(--text-muted); font-weight: 600;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+  padding: 6px 10px; border-bottom: 2px solid var(--border); border-right: 1px solid var(--border);
+  white-space: nowrap; position: sticky; top: 0; cursor: pointer; user-select: none;
+}
+.matrix-table th:hover { color: var(--text); background: var(--surface); }
+.matrix-table td { padding: 5px 10px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+.matrix-table tr:hover td { background: var(--surface); }
+.matrix-table tr.selected td { background: rgba(124,58,237,.12); }
+.progress-bar-wrap { background: var(--bg-sunken); border-radius: var(--r-sm); height: 8px; overflow: hidden; min-width: 60px; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: var(--r-sm); transition: width 200ms; }
+.star-rating { color: var(--warning); font-size: 14px; cursor: pointer; user-select: none; }
+.matrix-summary { background: var(--bg-elevated); border-top: 2px solid var(--border); font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.matrix-summary td { padding: 5px 10px; }
+
+/* ========== DRAW ========== */
+.draw-layout { display: flex; flex: 1; overflow: hidden; }
+.draw-tools {
+  width: 44px; background: var(--bg-elevated); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; padding: 6px 0; gap: 2px; flex-shrink: 0;
+}
+.draw-tool-btn {
+  width: 32px; height: 32px; background: none; border: none;
+  border-radius: var(--r-sm); color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+  transition: background 100ms, color 100ms;
+}
+.draw-tool-btn:hover { background: var(--surface); color: var(--text); }
+.draw-tool-btn.active { background: var(--surface-hi); color: var(--accent-hi); }
+.draw-tool-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.draw-tool-sep { width: 28px; height: 1px; background: var(--border); margin: 3px 0; }
+.draw-canvas-wrap { flex: 1; overflow: hidden; background: #101020; display: flex; align-items: center; justify-content: center; position: relative; }
+.draw-canvas { background: #fff; cursor: crosshair; display: block; }
+.draw-props { width: 196px; background: var(--bg-elevated); border-left: 1px solid var(--border); padding: 12px; overflow-y: auto; flex-shrink: 0; }
+.draw-props h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-faint); margin-bottom: 10px; }
+.prop-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; font-size: 12px; color: var(--text-muted); }
+.prop-row input[type=color] { width: 28px; height: 22px; padding: 1px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); cursor: pointer; }
+.prop-row input[type=number], .prop-row input[type=range] { width: 80px; padding: 2px 6px; height: 24px; }
+
+/* ========== PRESENT ========== */
+.present-layout { display: flex; flex: 1; overflow: hidden; }
+.slides-panel { width: 176px; background: var(--bg-elevated); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.slide-thumb { background: var(--surface); border: 2px solid var(--border); border-radius: var(--r-sm); cursor: pointer; aspect-ratio: 16/9; overflow: hidden; position: relative; transition: border-color 120ms; }
+.slide-thumb:hover { border-color: var(--border-hi); }
+.slide-thumb.active { border-color: var(--accent); }
+.slide-thumb-num { position: absolute; bottom: 4px; left: 4px; font-size: 9px; color: var(--text-faint); background: rgba(0,0,0,.5); padding: 1px 4px; border-radius: 2px; }
+.slide-editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.slide-stage-wrap { flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #080812; }
+.slide-stage { width: 960px; height: 540px; background: #fff; position: relative; overflow: hidden; border-radius: 3px; box-shadow: var(--shadow-lg); }
+.slide-element { position: absolute; cursor: move; user-select: none; }
+.slide-element.selected { outline: 2px solid var(--accent); outline-offset: 2px; }
+.slide-element:hover { outline: 1px dashed var(--accent); outline-offset: 2px; }
+.present-props { width: 196px; background: var(--bg-elevated); border-left: 1px solid var(--border); padding: 12px; overflow-y: auto; flex-shrink: 0; }
+
+/* ========== MAIL ========== */
+.mail-layout { display: flex; flex: 1; overflow: hidden; }
+.mail-sidebar { width: 196px; background: var(--bg-elevated); border-right: 1px solid var(--border); padding: 10px 6px; flex-shrink: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.mail-folder {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  border-radius: var(--r-sm); cursor: pointer; color: var(--text-muted); font-size: 13px;
+  transition: background 100ms, color 100ms;
+}
+.mail-folder:hover { background: var(--surface); color: var(--text); }
+.mail-folder.active { background: var(--surface-hi); color: var(--accent-hi); }
+.mail-folder svg { width: 16px; height: 16px; flex-shrink: 0; }
+.mail-badge { margin-left: auto; background: var(--accent); color: var(--on-accent); border-radius: var(--r-full); padding: 1px 7px; font-size: 10px; font-weight: 600; }
+.mail-list { width: 276px; background: var(--bg-sunken); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+.mail-item { padding: 11px 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 100ms; }
+.mail-item:hover { background: var(--surface); }
+.mail-item.active { background: var(--surface-hi); border-left: 3px solid var(--accent); }
+.mail-item.unread .mail-sender { font-weight: 700; color: var(--text); }
+.mail-sender { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mail-subject { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.mail-snippet { font-size: 11px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.mail-date { font-size: 10px; color: var(--text-faint); float: right; }
+.mail-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.mail-view-header { padding: 14px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-elevated); }
+.mail-view-subject { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.mail-view-meta { font-size: 12px; color: var(--text-muted); }
+.mail-view-body { flex: 1; overflow-y: auto; padding: 18px; font-size: 14px; line-height: 1.7; color: var(--text-muted); }
+.mail-compose {
+  position: fixed; bottom: 18px; right: 18px; width: 540px;
+  background: var(--surface); border: 1px solid var(--border-hi);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-lg); z-index: 500;
+}
+.compose-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; cursor: move; background: var(--surface-hi); border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.compose-body { padding: 10px 14px; }
+.compose-field { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; border-bottom: 1px solid var(--border); padding-bottom: 7px; }
+.compose-label { font-size: 11px; color: var(--text-faint); width: 36px; flex-shrink: 0; }
+.compose-input { flex: 1; background: none; border: none; color: var(--text); font-size: 13px; font-family: var(--font-sans); outline: none; padding: 0; width: auto; }
+.compose-textarea { width: 100%; background: none; border: none; color: var(--text); font-size: 13px; font-family: var(--font-sans); outline: none; resize: none; min-height: 180px; line-height: 1.6; padding: 0; }
+.compose-actions { padding: 8px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
+
+/* ========== NOTES ========== */
+.notes-layout { display: flex; flex: 1; overflow: hidden; }
+.notes-sidebar { width: 256px; background: var(--bg-elevated); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.notes-top { padding: 8px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+.notes-search { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: var(--r-md); padding: 5px 9px; font-size: 12px; height: 28px; }
+.notes-search:focus { outline: none; border-color: var(--accent); }
+.notes-list { flex: 1; overflow-y: auto; }
+.note-card { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 100ms; }
+.note-card:hover { background: var(--surface); }
+.note-card.active { background: var(--surface-hi); border-left: 3px solid var(--accent); }
+.note-card-title { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-card-preview { font-size: 11px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.note-card-date { font-size: 10px; color: var(--text-faint); margin-top: 3px; }
+.note-card.pinned .note-card-title::before { content: "📌 "; }
+.notes-editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.notes-title { width: 100%; background: none; border: none; border-bottom: 1px solid var(--border); color: var(--text); font-size: 19px; font-weight: 700; padding: 14px 18px; outline: none; font-family: var(--font-sans); }
+.notes-body-area { flex: 1; overflow-y: auto; }
+.notes-textarea { width: 100%; height: 100%; min-height: 200px; background: none; border: none; color: var(--text-muted); font-size: 13px; font-family: var(--font-sans); padding: 14px 18px; outline: none; resize: none; line-height: 1.7; }
+
+/* ========== CALENDAR ========== */
+.calendar-layout { display: flex; flex: 1; overflow: hidden; }
+.calendar-sidebar { width: 220px; background: var(--bg-elevated); border-right: 1px solid var(--border); padding: 14px; flex-shrink: 0; overflow-y: auto; }
+.calendar-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.calendar-nav { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-elevated); }
+.calendar-title { font-size: 16px; font-weight: 600; flex: 1; text-align: center; }
+.cal-view-btns { display: flex; gap: 2px; }
+.cal-view-btn { padding: 4px 10px; font-size: 12px; background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: var(--r-sm); cursor: pointer; font-family: var(--font-sans); }
+.cal-view-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.calendar-body { flex: 1; overflow: auto; padding: 8px; }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 4px; }
+.cal-wday { text-align: center; font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: .5px; padding: 4px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+.cal-day {
+  min-height: 90px; background: var(--surface); border-radius: var(--r-sm);
+  padding: 5px; cursor: pointer; transition: background 100ms;
+  border: 1px solid var(--border);
+}
+.cal-day:hover { background: var(--surface-hi); }
+.cal-day.today { border-color: var(--accent); }
+.cal-day.other-month { opacity: .3; }
+.cal-day-num { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 3px; }
+.cal-day.today .cal-day-num { color: var(--accent-hi); }
+.cal-event { border-radius: 2px; padding: 1px 5px; font-size: 10px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; cursor: pointer; }
+.mini-cal { margin-bottom: 16px; }
+.mini-cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: 11px; gap: 1px; }
+.mini-cal-cell { padding: 3px 2px; border-radius: 3px; cursor: pointer; }
+.mini-cal-cell:hover { background: var(--surface); }
+.mini-cal-cell.today { background: var(--accent); color: var(--on-accent); }
+.mini-cal-cell.other { opacity: .35; }
+.mini-cal-head { color: var(--text-faint); font-weight: 700; font-size: 10px; }
+.upcoming-events { font-size: 12px; }
+.upcoming-event { padding: 6px 8px; border-radius: var(--r-sm); margin-bottom: 4px; background: var(--surface); cursor: pointer; }
+.upcoming-event-title { font-weight: 600; color: var(--text); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.upcoming-event-date { font-size: 10px; color: var(--text-muted); }
+
+/* ========== APP CHROME (v2 layout) ========== */
+.app-chrome {
+  display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+}
+.titlebar {
+  height: var(--h-titlebar); background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 10px; gap: 8px; flex-shrink: 0;
+}
+.app-title {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  min-width: 60px; outline: none;
+}
+.app-title[contenteditable=true]:focus {
+  border-bottom: 1px solid var(--accent);
+}
+.toolbar-group { display: flex; align-items: center; gap: 2px; }
+.toolbar-sep { width: 1px; height: 22px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+.tb-color {
+  width: 28px; height: 24px; padding: 1px; border: 1px solid var(--border);
+  border-radius: var(--r-sm); background: var(--surface); cursor: pointer;
+}
+.tb-range { accent-color: var(--accent); }
+.tb-label { font-size: 11px; color: var(--text-faint); white-space: nowrap; padding: 0 2px; }
+.tb-search {
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  border-radius: var(--r-md); padding: 4px 9px; font-size: 12px; height: 28px; width: 200px;
+}
+.tb-search:focus { outline: none; border-color: var(--accent); }
+.cell-ref-box {
+  width: 60px; background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); text-align: center; padding: 2px 6px; font-size: 12px;
+  font-family: var(--font-mono); border-radius: var(--r-sm); height: 26px; line-height: 22px;
+  flex-shrink: 0;
+}
+.formula-bar {
+  flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  border-radius: var(--r-sm); padding: 2px 8px; font-size: 13px; font-family: var(--font-mono); height: 26px;
+}
+.formula-bar:focus { outline: none; border-color: var(--accent); }
+
+/* --- WRITE v2 --- */
+.write-app { flex: 1; }
+.write-scroll { flex: 1; overflow-y: auto; background: var(--bg-sunken); display: flex; justify-content: center; padding: 24px 16px; }
+.write-page {
+  background: #fff; color: #111827; width: min(794px, 100%); min-height: 1040px;
+  padding: 72px 80px; box-shadow: 0 2px 24px rgba(0,0,0,.55); outline: none;
+  font-family: Georgia, serif; line-height: 1.7;
+}
+@media (max-width: 900px) { .write-page { padding: 32px 20px; } }
+
+/* --- CALC v2 --- */
+.calc-app { flex: 1; }
+.calc-scroll { flex: 1; overflow: auto; }
+.calc-table { border-collapse: collapse; font-family: var(--font-mono); font-size: 12px; }
+.calc-table th {
+  background: var(--bg-elevated); color: var(--text-faint); font-weight: 600;
+  font-size: 11px; padding: 0 8px; height: 22px;
+  border: 1px solid var(--border); text-align: center;
+  position: sticky; top: 0; z-index: 2; white-space: nowrap;
+}
+.calc-table th:first-child { position: sticky; left: 0; z-index: 3; min-width: 40px; }
+.calc-table td {
+  height: 22px; min-width: 90px; max-width: 180px; padding: 0 4px;
+  border: 1px solid var(--border); color: var(--text);
+  white-space: nowrap; overflow: hidden; background: var(--bg);
+  cursor: cell; outline: none;
+}
+.calc-table td:focus, .calc-table td.selected {
+  background: rgba(124,58,237,.12) !important;
+  outline: 2px solid var(--accent); outline-offset: -2px;
+}
+.calc-table td.cell-error { color: var(--danger); }
+.calc-table td.cell-formula { color: var(--app-calc); }
+.calc-table tr:first-child th { position: sticky; top: 0; }
+
+/* --- MATRIX v2 --- */
+.matrix-app { flex: 1; }
+.matrix-scroll { flex: 1; overflow: auto; }
+.matrix-table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+.matrix-table th {
+  background: var(--bg-elevated); color: var(--text-muted); font-size: 11px;
+  text-transform: uppercase; letter-spacing: .5px; padding: 7px 10px;
+  border: 1px solid var(--border); white-space: nowrap;
+  position: sticky; top: 0;
+}
+.matrix-table td { padding: 5px 10px; border: 1px solid var(--border); background: var(--bg); }
+.matrix-table tr:hover td { background: var(--surface); }
+.cell-input, .cell-select {
+  background: transparent; border: none; color: var(--text); width: 100%;
+  font-size: 13px; font-family: var(--font-sans); padding: 0; outline: none;
+}
+.cell-input:focus, .cell-select:focus { outline: 2px solid var(--accent); border-radius: var(--r-sm); }
+.col-menu {
+  background: none; border: none; color: var(--text-faint); cursor: pointer;
+  font-size: 14px; padding: 0 2px; line-height: 1;
+}
+.col-menu:hover { color: var(--accent-hi); }
+.row-handle { color: var(--text-faint); width: 20px; text-align: center; }
+.doc-list { max-height: 320px; overflow-y: auto; margin: 0 -4px; }
+.doc-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  cursor: pointer; border-radius: var(--r-sm); transition: background 100ms;
+}
+.doc-row:hover { background: var(--surface); }
+.doc-row-title { flex: 1; font-size: 13px; color: var(--text); }
+.doc-row-date  { font-size: 11px; color: var(--text-faint); }
+
+/* --- DRAW v2 --- */
+.draw-app { flex: 1; }
+.draw-scroll { flex: 1; overflow: hidden; background: #0a0a1a; display: flex; align-items: center; justify-content: center; }
+.draw-canvas { width: 100%; height: 100%; cursor: crosshair; display: block; }
+.selected-shape { outline: 2px dashed var(--accent); outline-offset: 4px; }
+
+/* --- PRESENT v2 --- */
+.present-app { flex: 1; }
+.present-workspace { flex: 1; display: flex; overflow: hidden; }
+.slide-panel {
+  width: 160px; background: var(--bg-elevated); border-right: 1px solid var(--border);
+  overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
+}
+.slide-thumb {
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: var(--r-sm); cursor: pointer; aspect-ratio: 16/9; overflow: hidden;
+  transition: border-color 120ms; position: relative;
+}
+.slide-thumb:hover { border-color: var(--border-hi); }
+.slide-thumb.active { border-color: var(--accent); }
+.thumb-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 6px; font-size: 9px; }
+.thumb-num { position: absolute; bottom: 2px; right: 4px; font-size: 8px; color: var(--text-faint); }
+.slide-editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.slide-preview {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px; min-height: 0; overflow: hidden;
+}
+.slide-prev-title { font-size: clamp(20px, 4vw, 40px); font-weight: 700; margin-bottom: 16px; }
+.slide-prev-content { font-size: clamp(13px, 2vw, 20px); line-height: 1.5; }
+.slide-fields { padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg-elevated); flex-shrink: 0; display: flex; gap: 12px; }
+.slide-fields .form-group { flex: 1; margin-bottom: 0; }
+.slide-field-in, .slide-field-ta { font-size: 13px; }
+
+/* Fullscreen present */
+.present-fullscreen {
+  position: fixed; inset: 0; background: #000; z-index: 2000;
+  display: flex; flex-direction: column;
+}
+.present-fullscreen.hidden { display: none; }
+.pres-fs-slide {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 60px; overflow: hidden;
+}
+.fs-title { font-size: clamp(28px, 6vw, 72px); font-weight: 700; margin-bottom: 24px; }
+.fs-content { font-size: clamp(16px, 3vw, 36px); line-height: 1.5; }
+.pres-fs-controls {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 10px; background: rgba(0,0,0,.6); color: #fff;
+}
+
+/* --- MAIL v2 --- */
+.mail-app { flex: 1; }
+.mail-layout { flex: 1; display: flex; overflow: hidden; }
+.mail-sidebar {
+  width: 180px; background: var(--bg-elevated); border-right: 1px solid var(--border);
+  padding: 8px 6px; flex-shrink: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
+}
+.folder-btn {
+  display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+  border-radius: var(--r-sm); border: none; background: none;
+  color: var(--text-muted); font-size: 13px; cursor: pointer; font-family: var(--font-sans);
+  transition: background 100ms, color 100ms; width: 100%; text-align: left;
+}
+.folder-btn:hover { background: var(--surface); color: var(--text); }
+.folder-btn.active { background: var(--surface-hi); color: var(--accent-hi); }
+.folder-badge {
+  margin-left: auto; background: var(--accent); color: var(--on-accent);
+  border-radius: 999px; padding: 1px 6px; font-size: 10px; font-weight: 600;
+}
+.mail-list-area { flex: 1; display: flex; overflow: hidden; }
+.mail-list { width: 260px; border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+.mail-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 100ms; }
+.mail-item:hover { background: var(--surface); }
+.mail-item.selected { background: var(--surface-hi); border-left: 3px solid var(--accent); }
+.mail-item.unread .mail-from { font-weight: 700; color: var(--text); }
+.mail-from { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mail-subject { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.mail-date { font-size: 10px; color: var(--text-faint); }
+.mail-empty { padding: 24px; color: var(--text-faint); text-align: center; font-size: 13px; }
+.mail-detail { flex: 1; overflow-y: auto; padding: 20px; }
+.mail-detail-subject { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.mail-detail-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 16px; margin-bottom: 12px; }
+.mail-detail-actions { display: flex; gap: 6px; margin-bottom: 18px; }
+.mail-body { font-size: 14px; line-height: 1.7; color: var(--text-muted); }
+
+/* --- NOTES v2 --- */
+.notes-app { flex: 1; }
+.notes-layout { flex: 1; display: flex; overflow: hidden; }
+.notes-sidebar { width: 240px; background: var(--bg-elevated); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.notes-search-wrap { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.notes-list { flex: 1; overflow-y: auto; }
+.note-item { padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 100ms; }
+.note-item:hover { background: var(--surface); }
+.note-item.active { background: var(--surface-hi); border-left: 3px solid var(--accent); }
+.note-item.pinned .note-item-title { color: var(--accent-hi); }
+.note-item-title { font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note-item-preview { font-size: 11px; color: var(--text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+.note-item-date { font-size: 10px; color: var(--text-faint); margin-top: 3px; }
+.notes-editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.notes-toolbar {
+  display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+  border-bottom: 1px solid var(--border); background: var(--bg-elevated); flex-shrink: 0;
+}
+.notes-title-in {
+  flex: 1; background: none; border: none; color: var(--text); font-size: 16px;
+  font-weight: 700; outline: none; font-family: var(--font-sans);
+}
+.notes-content {
+  flex: 1; background: none; border: none; color: var(--text); font-size: 14px;
+  font-family: var(--font-sans); padding: 16px 18px; outline: none;
+  resize: none; line-height: 1.7; min-height: 0;
+}
+
+/* --- CALENDAR v2 --- */
+.cal-app { flex: 1; }
+.cal-title-bar {
+  padding: 8px 16px; font-size: 16px; font-weight: 600;
+  background: var(--bg-elevated); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.cal-body { flex: 1; overflow: auto; padding: 8px; }
+.cal-month .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-dow { text-align: center; font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; padding: 4px; }
+.cal-day {
+  min-height: 80px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 5px; cursor: pointer; transition: background 100ms;
+}
+.cal-day:hover { background: var(--surface-hi); }
+.cal-day.today { border-color: var(--accent); }
+.cal-day.other { opacity: .35; pointer-events: none; }
+.cal-day-num { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 3px; }
+.cal-day.today .cal-day-num { color: var(--accent-hi); font-weight: 700; }
+.cal-events-mini { display: flex; flex-direction: column; gap: 2px; }
+.ev-dot {
+  border-radius: 2px; padding: 1px 4px; font-size: 10px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;
+}
+.ev-more { font-size: 10px; color: var(--text-faint); }
+
+/* Week view */
+.cal-week .cal-week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; height: 100%; }
+.cal-week-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; min-height: 300px; }
+.cal-week-col.today { border-color: var(--accent); }
+.cal-week-hdr { background: var(--bg-elevated); padding: 6px; text-align: center; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.cal-week-col.today .cal-week-hdr { color: var(--accent-hi); font-weight: 700; }
+.cal-week-events { padding: 4px; display: flex; flex-direction: column; gap: 3px; }
+.ev-block { border-radius: var(--r-sm); padding: 4px 6px; font-size: 11px; cursor: pointer; }
+.ev-block:hover { opacity: .85; }
+
+/* Day view */
+.cal-day-view { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+.cal-day-header { display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 600; padding: 8px 0; }
+.cal-day-header.today { color: var(--accent-hi); }
+.cal-no-events { color: var(--text-faint); font-size: 13px; padding: 16px 0; }
+.ev-card { background: var(--surface); border-radius: var(--r-md); padding: 12px 16px; border-left: 4px solid var(--accent); }
+.ev-card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.ev-card-time { font-size: 12px; color: var(--text-muted); }
+.ev-card-desc { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+
+/* view-btn active state */
+.view-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+/* btn-sm */
+.btn-sm { padding: 4px 10px; font-size: 12px; height: 28px; }
+
+/* btn-icon active */
+.btn-icon.active { color: var(--accent-hi); }
+
+</style>
+</head>
+<body>
+  <div id="app">
+    <div id="launcher" class="launcher" role="main">
+      <header class="launcher-header">
+        <div class="logo">
+          <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+            <rect width="40" height="40" rx="10" fill="var(--accent)"/>
+            <path d="M10 20 L20 10 L30 20 L20 30 Z" fill="rgba(255,255,255,0.25)"/>
+            <circle cx="20" cy="20" r="5" fill="#fff"/>
+          </svg>
+          <span>Jarvis Office</span>
+        </div>
+        <div class="launcher-right">
+          <time id="clock" aria-live="polite"></time>
+          <button id="btn-settings" class="btn-icon" aria-label="Einstellungen öffnen">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.22 4.22l1.06 1.06M14.72 14.72l1.06 1.06M4.22 15.78l1.06-1.06M14.72 5.28l1.06-1.06"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="launcher-grid" id="launcher-grid" role="list" aria-label="Anwendungen">
+      </main>
+
+      <footer class="launcher-footer">
+        <span>Jarvis Office v2.0</span>
+      </footer>
+    </div>
+
+    <div id="app-container" class="app-container hidden" role="region" aria-label="Aktive Anwendung"></div>
+  </div>
+
+  <script>
+/* ===== JARVIS OFFICE v2 — UTILS ===== */
+
+function $(sel, ctx = document) { return ctx.querySelector(sel); }
+function $$(sel, ctx = document) { return [...ctx.querySelectorAll(sel)]; }
+
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else e.setAttribute(k, v);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    e.append(typeof c === 'string' ? document.createTextNode(c) : c);
+  }
+  return e;
+}
+
+function formatDate(d = new Date()) {
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+function formatTime(d = new Date()) {
+  return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+function formatDateTime(d = new Date()) {
+  return `${formatDate(d)} ${formatTime(d)}`;
+}
+
+function debounce(fn, ms = 300) {
+  let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}
+
+function sanitize(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function downloadFile(content, filename, mime = 'text/plain') {
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// Modal — returns a Promise resolved with the modal el on OK, rejected on cancel
+// No setTimeout race: event listeners are added before overlay is inserted.
+function showModal(html, onOk, onCancel) {
+  const overlay = el('div', { class: 'modal-overlay', role: 'dialog', 'aria-modal': 'true' });
+  const modal = el('div', { class: 'modal' });
+  modal.innerHTML = html;
+
+  const btnOk     = modal.querySelector('.btn-ok');
+  const btnCancel = modal.querySelector('.btn-cancel');
+
+  function close() { overlay.remove(); }
+
+  if (btnOk) {
+    btnOk.addEventListener('click', () => {
+      close();
+      onOk && onOk(modal);
+    });
+  }
+  if (btnCancel) {
+    btnCancel.addEventListener('click', () => {
+      close();
+      onCancel && onCancel();
+    });
+  }
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) { close(); onCancel && onCancel(); }
+  });
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { close(); onCancel && onCancel(); document.removeEventListener('keydown', esc); }
+  });
+
+  overlay.append(modal);
+  document.body.append(overlay);
+
+  // Focus first interactive element
+  const firstFocusable = modal.querySelector('input, textarea, select, button');
+  firstFocusable?.focus();
+
+  return modal;
+}
+
+function showNotify(msg, type = 'info') {
+  const colors = { info: 'var(--accent)', success: 'var(--app-calc)', error: 'var(--danger)', warn: 'var(--warning)' };
+  const n = el('div');
+  n.setAttribute('role', 'status');
+  n.setAttribute('aria-live', 'polite');
+  n.style.cssText = `position:fixed;bottom:20px;right:20px;background:${colors[type]||colors.info};color:#fff;padding:9px 15px;border-radius:8px;font-size:12px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.45);animation:slideUp 0.18s ease;max-width:300px;font-family:var(--font-sans);`;
+  n.textContent = msg;
+  document.body.append(n);
+  setTimeout(() => n.remove(), 3000);
+}
+
+// Spreadsheet address helpers
+function colToLetter(n) {
+  let s = '';
+  while (n >= 0) { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26) - 1; }
+  return s;
+}
+function letterToCol(s) {
+  let n = -1;
+  for (const c of s.toUpperCase()) { n = (n + 1) * 26 + (c.charCodeAt(0) - 65); }
+  return n;
+}
+function cellRef(row, col) { return `${colToLetter(col)}${row + 1}`; }
+
+// SVG icon helper (inline Lucide-compatible paths)
+const ICONS = {
+  arrowLeft:   '<path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 5l-7 7 7 7"/>',
+  save:        '<path stroke-linecap="round" stroke-linejoin="round" d="M17 21H7a2 2 0 01-2-2V7l4-4h8a2 2 0 012 2v12a2 2 0 01-2 2z"/><rect x="9" y="13" width="6" height="8" rx="1"/>',
+  filePlus:    '<path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 11v6M9 14h6"/>',
+  folderOpen:  '<path stroke-linecap="round" stroke-linejoin="round" d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>',
+  download:    '<path stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  printer:     '<path stroke-linecap="round" stroke-linejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/>',
+  search:      '<circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>',
+  table:       '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+  bold:        '<path stroke-linecap="round" stroke-linejoin="round" d="M6 12h8a4 4 0 000-8H6v8zM6 12h9a4 4 0 010 8H6v-8z"/>',
+  italic:      '<path stroke-linecap="round" stroke-linejoin="round" d="M19 4h-9M14 20H5M15 4L9 20"/>',
+  underline:   '<path stroke-linecap="round" stroke-linejoin="round" d="M6 3v7a6 6 0 0012 0V3M4 21h16"/>',
+  alignLeft:   '<line x1="21" y1="6" x2="3" y2="6"/><line x1="15" y1="12" x2="3" y2="12"/><line x1="17" y1="18" x2="3" y2="18"/>',
+  alignCenter: '<line x1="18" y1="6" x2="6" y2="6"/><line x1="21" y1="12" x2="3" y2="12"/><line x1="18" y1="18" x2="6" y2="18"/>',
+  alignRight:  '<line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="12" x2="9" y2="12"/><line x1="21" y1="18" x2="7" y2="18"/>',
+  undo:        '<path stroke-linecap="round" stroke-linejoin="round" d="M3 7v6h6"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>',
+  redo:        '<path stroke-linecap="round" stroke-linejoin="round" d="M21 7v6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/>',
+  barChart:    '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  plus:        '<path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/>',
+  trash:       '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>',
+  star:        '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  mail:        '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>',
+  reply:       '<polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/>',
+  forward:     '<polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 014-4h12"/>',
+  pin:         '<path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+  chevronLeft: '<polyline points="15 18 9 12 15 6"/>',
+  chevronRight:'<polyline points="9 18 15 12 9 6"/>',
+  x:           '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  check:       '<polyline points="20 6 9 17 4 12"/>',
+  settings:    '<circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>',
+  palette:     '<circle cx="12" cy="12" r="10"/><circle cx="8" cy="10" r="1.5" fill="currentColor"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/><circle cx="16" cy="10" r="1.5" fill="currentColor"/><path d="M9.5 17a2.5 2.5 0 005 0"/>',
+  eye:         '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  link:        '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>',
+  calendarIcon:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+};
+
+function icon(name, size = 16, extra = '') {
+  const paths = ICONS[name] || '';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${paths}</svg>`;
+}
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — STORAGE ===== */
+
+const JarvisDB = {
+  get(key, def = null) {
+    try { const v = localStorage.getItem('jo2_' + key); return v !== null ? JSON.parse(v) : def; }
+    catch { return def; }
+  },
+  set(key, val) {
+    try { localStorage.setItem('jo2_' + key, JSON.stringify(val)); } catch(e) {
+      console.warn('JarvisDB: localStorage voll', e);
+    }
+  },
+  del(key) { localStorage.removeItem('jo2_' + key); },
+  keys() {
+    return Object.keys(localStorage).filter(k => k.startsWith('jo2_')).map(k => k.slice(4));
+  },
+
+  saveDoc(app, id, data) {
+    const docs = this.get(`${app}_docs`, {});
+    docs[id] = { ...data, id, modified: Date.now() };
+    this.set(`${app}_docs`, docs);
+    return docs[id];
+  },
+  loadDoc(app, id) {
+    return this.get(`${app}_docs`, {})[id] || null;
+  },
+  listDocs(app) {
+    return Object.values(this.get(`${app}_docs`, {}))
+      .sort((a, b) => (b.modified || 0) - (a.modified || 0));
+  },
+  deleteDoc(app, id) {
+    const docs = this.get(`${app}_docs`, {});
+    delete docs[id];
+    this.set(`${app}_docs`, docs);
+  },
+  genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); },
+};
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — LAUNCHER ===== */
+
+const APPS = {
+  write:    { name: 'Jarvis Write',    desc: 'Textverarbeitung',     color: 'var(--app-write)',    init: (c) => initWrite(c) },
+  calc:     { name: 'Jarvis Calc',     desc: 'Tabellenkalkulation',  color: 'var(--app-calc)',     init: (c) => initCalc(c) },
+  matrix:   { name: 'Jarvis Matrix',   desc: 'Smart-Tabellen',       color: 'var(--app-matrix)',   init: (c) => initMatrix(c) },
+  draw:     { name: 'Jarvis Draw',     desc: 'Vektorgrafik',         color: 'var(--app-draw)',     init: (c) => initDraw(c) },
+  present:  { name: 'Jarvis Present',  desc: 'Präsentationen',       color: 'var(--app-present)',  init: (c) => initPresent(c) },
+  mail:     { name: 'Jarvis Mail',     desc: 'E-Mail-Client',        color: 'var(--app-mail)',     init: (c) => initMail(c) },
+  notes:    { name: 'Jarvis Notes',    desc: 'Schnellnotizen',       color: 'var(--app-notes)',    init: (c) => initNotes(c) },
+  calendar: { name: 'Jarvis Calendar', desc: 'Kalender & Termine',   color: 'var(--app-calendar)', init: (c) => initCalendar(c) },
+};
+
+// App icons as SVG paths (color inherits from parent)
+const APP_ICONS = {
+  write:    '<rect x="5" y="4" width="14" height="17" rx="2" stroke-width="1.5"/><line x1="9" y1="9" x2="15" y2="9" stroke-width="1.5"/><line x1="9" y1="13" x2="15" y2="13" stroke-width="1.5"/><line x1="9" y1="17" x2="13" y2="17" stroke-width="1.5"/>',
+  calc:     '<rect x="4" y="4" width="16" height="16" rx="2" stroke-width="1.5"/><line x1="4" y1="12" x2="20" y2="12" stroke-width="1.5"/><line x1="12" y1="4" x2="12" y2="20" stroke-width="1.5"/>',
+  matrix:   '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.5"/><polyline points="7,15 10,11 13,13 17,8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  draw:     '<path d="M12 20h9" stroke-width="1.5" stroke-linecap="round"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke-width="1.5"/>',
+  present:  '<rect x="3" y="5" width="18" height="13" rx="2" stroke-width="1.5"/><line x1="12" y1="18" x2="12" y2="22" stroke-width="1.5"/><line x1="8" y1="22" x2="16" y2="22" stroke-width="1.5"/>',
+  mail:     '<rect x="2" y="5" width="20" height="14" rx="2" stroke-width="1.5"/><polyline points="2,7 12,14 22,7" stroke-width="1.5"/>',
+  notes:    '<path d="M11 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" stroke-width="1.5"/><polyline points="13,2 13,9 20,9" stroke-width="1.5"/><line x1="9" y1="13" x2="15" y2="13" stroke-width="1.5"/><line x1="9" y1="17" x2="13" y2="17" stroke-width="1.5"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2" stroke-width="1.5"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="1.5"/>',
+};
+
+let currentApp = null;
+
+function buildLauncher() {
+  const grid = document.getElementById('launcher-grid');
+  grid.innerHTML = '';
+  for (const [key, app] of Object.entries(APPS)) {
+    const card = document.createElement('button');
+    card.className = 'app-card';
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('aria-label', app.name + ' öffnen');
+    card.dataset.app = key;
+    card.innerHTML = `
+      <div class="app-icon" style="background:${app.color}22">
+        <svg viewBox="0 0 24 24" fill="none" stroke="${app.color}" aria-hidden="true">${APP_ICONS[key] || ''}</svg>
+      </div>
+      <span class="app-name">${app.name}</span>
+      <span class="app-desc">${app.desc}</span>
+    `;
+    card.addEventListener('click', () => launchApp(key));
+    grid.appendChild(card);
+  }
+}
+
+function launchApp(name) {
+  const app = APPS[name];
+  if (!app) return;
+  currentApp = name;
+  document.getElementById('launcher').classList.add('hidden');
+  const container = document.getElementById('app-container');
+  container.classList.remove('hidden');
+  container.innerHTML = '';
+  try { app.init(container); }
+  catch (err) {
+    console.error('App-Fehler:', err);
+    container.innerHTML = `<div style="padding:32px;color:var(--danger)">Fehler beim Starten von ${app.name}: ${err.message}</div>`;
+  }
+}
+
+function goHome() {
+  currentApp = null;
+  document.getElementById('app-container').classList.add('hidden');
+  document.getElementById('launcher').classList.remove('hidden');
+  // Clean up any event listeners / intervals the app may have left
+  document.getElementById('app-container').innerHTML = '';
+}
+
+// Settings modal
+document.getElementById('btn-settings').addEventListener('click', openSettings);
+
+function openSettings() {
+  const s = JarvisDB.get('settings', {});
+  showModal(`
+    <h3>Einstellungen</h3>
+    <div class="form-group">
+      <label for="set-name">Name</label>
+      <input type="text" id="set-name" value="${sanitize(s.name || 'Master')}" autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label for="set-fontsize">Standard-Schriftgröße (Write)</label>
+      <input type="number" id="set-fontsize" value="${s.fontSize || 14}" min="10" max="24" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-cancel">Abbrechen</button>
+      <button class="btn btn-primary btn-ok">Speichern</button>
+    </div>
+  `, (modal) => {
+    const name     = modal.querySelector('#set-name').value.trim() || 'Master';
+    const fontSize = parseInt(modal.querySelector('#set-fontsize').value) || 14;
+    JarvisDB.set('settings', { name, fontSize });
+    showNotify('Einstellungen gespeichert.', 'success');
+  });
+}
+
+// Clock
+function updateClock() {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = formatDateTime();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+buildLauncher();
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — WRITE ===== */
+
+function initWrite(container) {
+  let docId = null;
+  let dirty = false;
+  let autoSaveTimer = null;
+
+  const settings = JarvisDB.get('settings', {});
+  const fontSize = settings.fontSize || 14;
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
+  container.innerHTML = `
+    <div class="app-chrome write-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück zum Launcher">${icon('arrowLeft', 18)}</button>
+        <span class="app-title" id="write-title">Unbenannt</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-ghost btn-sm" id="write-new">${icon('filePlus', 15)} Neu</button>
+          <button class="btn btn-ghost btn-sm" id="write-open">${icon('folderOpen', 15)} Öffnen</button>
+          <button class="btn btn-primary btn-sm" id="write-save">${icon('save', 15)} Speichern</button>
+        </div>
+      </div>
+
+      <div class="toolbar" role="toolbar" aria-label="Formatierung">
+        <div class="toolbar-group">
+          <button class="tb-btn" data-cmd="bold"      title="Fett (Strg+B)">${icon('bold', 16)}</button>
+          <button class="tb-btn" data-cmd="italic"    title="Kursiv (Strg+I)">${icon('italic', 16)}</button>
+          <button class="tb-btn" data-cmd="underline" title="Unterstrichen (Strg+U)">${icon('underline', 16)}</button>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <button class="tb-btn" data-cmd="justifyLeft"   title="Linksbündig">${icon('alignLeft', 16)}</button>
+          <button class="tb-btn" data-cmd="justifyCenter" title="Zentriert">${icon('alignCenter', 16)}</button>
+          <button class="tb-btn" data-cmd="justifyRight"  title="Rechtsbündig">${icon('alignRight', 16)}</button>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <select id="write-heading" aria-label="Überschrift" class="tb-select">
+            <option value="">Absatz</option>
+            <option value="H1">Überschrift 1</option>
+            <option value="H2">Überschrift 2</option>
+            <option value="H3">Überschrift 3</option>
+          </select>
+          <select id="write-fontsize" aria-label="Schriftgröße" class="tb-select">
+            ${[10,11,12,13,14,16,18,20,24,28,36,48].map(s =>
+              `<option value="${s}"${s===fontSize?' selected':''}>${s}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <button class="tb-btn" data-cmd="undo"  title="Rückgängig (Strg+Z)">${icon('undo', 16)}</button>
+          <button class="tb-btn" data-cmd="redo"  title="Wiederholen (Strg+Y)">${icon('redo', 16)}</button>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <button class="btn btn-ghost btn-sm" id="write-export-html">${icon('download', 15)} HTML</button>
+          <button class="btn btn-ghost btn-sm" id="write-export-txt">${icon('download', 15)} TXT</button>
+          <button class="btn btn-ghost btn-sm" id="write-print">${icon('printer', 15)} Drucken</button>
+        </div>
+      </div>
+
+      <div class="write-scroll">
+        <div class="write-page"
+             id="write-editor"
+             contenteditable="true"
+             spellcheck="true"
+             role="textbox"
+             aria-multiline="true"
+             aria-label="Dokument-Editor"
+             style="font-size:${fontSize}px"></div>
+      </div>
+
+      <div class="statusbar">
+        <span id="write-wordcount">0 Wörter</span>
+        <span id="write-dirty"></span>
+      </div>
+    </div>
+  `;
+
+  const editor    = container.querySelector('#write-editor');
+  const titleEl   = container.querySelector('#write-title');
+  const dirtyEl   = container.querySelector('#write-dirty');
+  const wcEl      = container.querySelector('#write-wordcount');
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function markDirty() {
+    dirty = true;
+    dirtyEl.textContent = '● Ungespeichert';
+  }
+
+  function markClean() {
+    dirty = false;
+    dirtyEl.textContent = '';
+  }
+
+  function getTitle() {
+    return titleEl.textContent.trim() || 'Unbenannt';
+  }
+
+  function setTitle(t) {
+    titleEl.textContent = t || 'Unbenannt';
+  }
+
+  function countWords() {
+    const text = editor.innerText.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    wcEl.textContent = `${words} ${words === 1 ? 'Wort' : 'Wörter'}`;
+  }
+
+  // ── Save / Load ───────────────────────────────────────────────────────────
+  function saveDoc() {
+    const title = getTitle();
+    const html  = editor.innerHTML;
+    if (!docId) docId = JarvisDB.genId();
+    JarvisDB.saveDoc('write', docId, { title, html });
+    markClean();
+    showNotify('Gespeichert: ' + title, 'success');
+  }
+
+  function loadDocById(id) {
+    const d = JarvisDB.loadDoc('write', id);
+    if (!d) return;
+    docId = id;
+    setTitle(d.title);
+    editor.innerHTML = d.html || '';
+    markClean();
+    countWords();
+    editor.focus();
+  }
+
+  function newDoc() {
+    if (dirty && !confirm('Ungespeicherte Änderungen verwerfen?')) return;
+    docId = null;
+    setTitle('Unbenannt');
+    editor.innerHTML = '';
+    markClean();
+    countWords();
+    editor.focus();
+  }
+
+  function openDocDialog() {
+    const docs = JarvisDB.listDocs('write');
+    if (!docs.length) { showNotify('Keine gespeicherten Dokumente.', 'info'); return; }
+
+    const rows = docs.map(d => `
+      <div class="doc-row" data-id="${sanitize(d.id)}" tabindex="0" role="button" aria-label="${sanitize(d.title)} öffnen">
+        <span class="doc-row-title">${sanitize(d.title)}</span>
+        <span class="doc-row-date">${formatDateTime(new Date(d.modified))}</span>
+        <button class="btn btn-ghost btn-sm doc-delete" data-id="${sanitize(d.id)}" aria-label="Löschen">${icon('trash', 14)}</button>
+      </div>`).join('');
+
+    showModal(`
+      <h3>Dokument öffnen</h3>
+      <div class="doc-list">${rows}</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-cancel">Abbrechen</button>
+      </div>
+    `, null);
+
+    // attach click handlers after modal is in DOM
+    container.querySelectorAll('.doc-row').forEach(row => {
+      row.addEventListener('click', e => {
+        if (e.target.closest('.doc-delete')) return;
+        if (dirty && !confirm('Ungespeicherte Änderungen verwerfen?')) return;
+        loadDocById(row.dataset.id);
+        row.closest('.modal-overlay')?.remove();
+      });
+      row.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') row.click();
+      });
+    });
+    container.querySelectorAll('.doc-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm('Dokument löschen?')) return;
+        JarvisDB.deleteDoc('write', btn.dataset.id);
+        btn.closest('.doc-row').remove();
+        if (docId === btn.dataset.id) { docId = null; setTitle('Unbenannt'); editor.innerHTML = ''; markClean(); }
+      });
+    });
+  }
+
+  // ── Auto-save ─────────────────────────────────────────────────────────────
+  autoSaveTimer = setInterval(() => { if (dirty && docId) saveDoc(); }, 30000);
+
+  // ── Toolbar commands ──────────────────────────────────────────────────────
+  function execCmd(cmd, val = null) {
+    editor.focus();
+    document.execCommand(cmd, false, val);
+    markDirty();
+  }
+
+  container.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => {
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault(); // keep focus in editor
+      execCmd(btn.dataset.cmd);
+    });
+  });
+
+  container.querySelector('#write-heading').addEventListener('change', function () {
+    if (this.value) execCmd('formatBlock', this.value);
+    else execCmd('formatBlock', 'P');
+    this.value = '';
+  });
+
+  container.querySelector('#write-fontsize').addEventListener('change', function () {
+    execCmd('fontSize', 7);
+    // execCommand fontSize only supports 1-7; use span hack for exact px
+    const spans = editor.querySelectorAll('font[size="7"]');
+    spans.forEach(s => {
+      const sp = document.createElement('span');
+      sp.style.fontSize = this.value + 'px';
+      s.replaceWith(...(sp.append(...s.childNodes), [sp]));
+    });
+  });
+
+  // ── Document events ───────────────────────────────────────────────────────
+  editor.addEventListener('input', () => { markDirty(); countWords(); });
+  editor.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); }
+  });
+
+  container.querySelector('.back-btn').addEventListener('click', () => {
+    if (dirty && !confirm('Ungespeicherte Änderungen verwerfen?')) return;
+    clearInterval(autoSaveTimer);
+    goHome();
+  });
+
+  container.querySelector('#write-new').addEventListener('click', newDoc);
+  container.querySelector('#write-open').addEventListener('click', openDocDialog);
+  container.querySelector('#write-save').addEventListener('click', saveDoc);
+
+  container.querySelector('#write-export-html').addEventListener('click', () => {
+    downloadFile(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${getTitle()}</title></head><body>${editor.innerHTML}</body></html>`,
+      getTitle() + '.html', 'text/html');
+  });
+  container.querySelector('#write-export-txt').addEventListener('click', () => {
+    downloadFile(editor.innerText, getTitle() + '.txt', 'text/plain');
+  });
+  container.querySelector('#write-print').addEventListener('click', () => {
+    const w = window.open('', '_blank');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${getTitle()}</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.6}</style></head><body>${editor.innerHTML}</body></html>`);
+    w.document.close();
+    w.print();
+  });
+
+  // Allow inline title rename
+  titleEl.setAttribute('contenteditable', 'true');
+  titleEl.addEventListener('input', markDirty);
+  titleEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); editor.focus(); } });
+
+  countWords();
+  editor.focus();
+}
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — CALC ===== */
+
+function initCalc(container) {
+  const ROWS = 50, COLS = 26;
+  let cells = {};        // { "A1": { raw, val, fmt } }
+  let dirty = new Set(); // cells needing re-render
+  let selected = { r: 0, c: 0 };
+  let docId = null;
+  let isDirty = false;
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
+  container.innerHTML = `
+    <div class="app-chrome calc-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title" id="calc-title" contenteditable="true">Tabelle1</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-ghost btn-sm" id="calc-new">${icon('filePlus', 15)} Neu</button>
+          <button class="btn btn-ghost btn-sm" id="calc-open">${icon('folderOpen', 15)} Öffnen</button>
+          <button class="btn btn-primary btn-sm" id="calc-save">${icon('save', 15)} Speichern</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <span class="cell-ref-box" id="calc-ref">A1</span>
+          <input type="text" id="calc-formula" class="formula-bar" aria-label="Formelleiste" placeholder="Wert oder =Formel" />
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <button class="btn btn-ghost btn-sm" id="calc-insert-chart">${icon('barChart', 15)} Diagramm</button>
+          <button class="btn btn-ghost btn-sm" id="calc-export">${icon('download', 15)} CSV</button>
+        </div>
+      </div>
+      <div class="calc-scroll">
+        <table class="calc-table" id="calc-table" role="grid" aria-label="Tabellenkalkulation"></table>
+      </div>
+      <div class="statusbar">
+        <span id="calc-status">Bereit</span>
+        <span id="calc-dirty"></span>
+      </div>
+    </div>
+  `;
+
+  const table    = container.querySelector('#calc-table');
+  const formulaBar = container.querySelector('#calc-formula');
+  const refBox   = container.querySelector('#calc-ref');
+  const titleEl  = container.querySelector('#calc-title');
+  const dirtyEl  = container.querySelector('#calc-dirty');
+  const statusEl = container.querySelector('#calc-status');
+
+  // ── Build table skeleton ──────────────────────────────────────────────────
+  function buildTable() {
+    const frag = document.createDocumentFragment();
+    // header row
+    const hrow = document.createElement('tr');
+    hrow.appendChild(document.createElement('th')); // corner
+    for (let c = 0; c < COLS; c++) {
+      const th = document.createElement('th');
+      th.textContent = colToLetter(c);
+      th.setAttribute('scope', 'col');
+      frag.appendChild(th); // temp; we'll add to hrow
+      hrow.appendChild(th);
+    }
+    frag.appendChild(hrow);
+    // data rows
+    for (let r = 0; r < ROWS; r++) {
+      const row = document.createElement('tr');
+      const rowH = document.createElement('th');
+      rowH.textContent = r + 1;
+      rowH.setAttribute('scope', 'row');
+      row.appendChild(rowH);
+      for (let c = 0; c < COLS; c++) {
+        const td = document.createElement('td');
+        td.dataset.r = r;
+        td.dataset.c = c;
+        td.setAttribute('tabindex', '-1');
+        td.setAttribute('role', 'gridcell');
+        row.appendChild(td);
+      }
+      frag.appendChild(row);
+    }
+    table.innerHTML = '';
+    table.appendChild(frag);
+  }
+
+  function getCellEl(r, c) {
+    return table.querySelector(`td[data-r="${r}"][data-c="${c}"]`);
+  }
+
+  // ── Cell key helper ───────────────────────────────────────────────────────
+  function key(r, c) { return cellRef(r, c); }
+
+  // ── Formula evaluation ────────────────────────────────────────────────────
+  function getCellVal(ref) {
+    const v = cells[ref.toUpperCase()]?.val;
+    return v === undefined ? 0 : (isNaN(v) ? v : Number(v));
+  }
+
+  function evalFormula(expr) {
+    if (!expr.startsWith('=')) return isNaN(expr) ? expr : Number(expr) || expr;
+    let f = expr.slice(1).trim().toUpperCase();
+    try {
+      // SUM(A1:B3)
+      f = f.replace(/SUM\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
+        let sum = 0;
+        const [r1, c1] = refToRC(a), [r2, c2] = refToRC(b);
+        for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) sum += Number(getCellVal(cellRef(r, c))) || 0;
+        return sum;
+      });
+      // AVG(A1:B3)
+      f = f.replace(/AVG\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
+        let sum = 0, cnt = 0;
+        const [r1, c1] = refToRC(a), [r2, c2] = refToRC(b);
+        for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) { sum += Number(getCellVal(cellRef(r, c))) || 0; cnt++; }
+        return cnt ? sum / cnt : 0;
+      });
+      // MAX / MIN
+      f = f.replace(/MAX\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
+        const vals = rangeVals(a, b); return vals.length ? Math.max(...vals) : 0;
+      });
+      f = f.replace(/MIN\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
+        const vals = rangeVals(a, b); return vals.length ? Math.min(...vals) : 0;
+      });
+      // COUNT
+      f = f.replace(/COUNT\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => rangeVals(a, b).filter(v => !isNaN(v)).length);
+      // Cell references
+      f = f.replace(/\b([A-Z]+\d+)\b/g, ref => {
+        const v = getCellVal(ref);
+        return typeof v === 'number' ? v : `"${v}"`;
+      });
+      // eslint-disable-next-line no-new-func
+      const result = Function('"use strict"; return (' + f + ')')();
+      return isNaN(result) ? result : Number(result.toFixed(10));
+    } catch { return '#ERR'; }
+  }
+
+  function rangeVals(a, b) {
+    const [r1, c1] = refToRC(a), [r2, c2] = refToRC(b);
+    const vals = [];
+    for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) vals.push(Number(getCellVal(cellRef(r, c))));
+    return vals;
+  }
+
+  function refToRC(ref) {
+    const m = ref.match(/^([A-Z]+)(\d+)$/);
+    return m ? [parseInt(m[2]) - 1, letterToCol(m[1])] : [0, 0];
+  }
+
+  // ── Dirty-cell rendering ──────────────────────────────────────────────────
+  function scheduleRender() {
+    requestAnimationFrame(flushDirty);
+  }
+
+  function flushDirty() {
+    for (const k of dirty) {
+      const cell = cells[k];
+      const [r, c] = refToRC(k);
+      const td = getCellEl(r, c);
+      if (!td) continue;
+      const display = cell ? String(cell.val === undefined ? '' : cell.val) : '';
+      td.textContent = display;
+      td.classList.toggle('cell-error', display === '#ERR');
+      td.classList.toggle('cell-formula', !!(cell?.raw?.startsWith('=')));
+    }
+    dirty.clear();
+  }
+
+  function setCellRaw(r, c, raw) {
+    const k = key(r, c);
+    if (raw === '' || raw === undefined) {
+      delete cells[k];
+    } else {
+      const val = evalFormula(raw);
+      cells[k] = { raw, val };
+    }
+    dirty.add(k);
+    isDirty = true;
+    dirtyEl.textContent = '● Ungespeichert';
+    scheduleRender();
+  }
+
+  // ── Selection ─────────────────────────────────────────────────────────────
+  function selectCell(r, c) {
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+    const prev = getCellEl(selected.r, selected.c);
+    prev?.classList.remove('selected');
+    selected = { r, c };
+    const td = getCellEl(r, c);
+    if (td) { td.classList.add('selected'); td.focus(); }
+    const k = key(r, c);
+    refBox.textContent = k;
+    formulaBar.value = cells[k]?.raw || '';
+    updateStatus();
+  }
+
+  function updateStatus() {
+    const k = key(selected.r, selected.c);
+    const val = cells[k]?.val;
+    statusEl.textContent = val !== undefined ? String(val) : '';
+  }
+
+  // ── Event: click cell ─────────────────────────────────────────────────────
+  table.addEventListener('click', e => {
+    const td = e.target.closest('td');
+    if (!td) return;
+    selectCell(Number(td.dataset.r), Number(td.dataset.c));
+  });
+
+  // ── Event: keyboard nav ───────────────────────────────────────────────────
+  table.addEventListener('keydown', e => {
+    const { r, c } = selected;
+    if (e.key === 'ArrowRight')  { e.preventDefault(); selectCell(r, c + 1); }
+    else if (e.key === 'ArrowLeft')  { e.preventDefault(); selectCell(r, c - 1); }
+    else if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); selectCell(r + 1, c); }
+    else if (e.key === 'ArrowUp')    { e.preventDefault(); selectCell(r - 1, c); }
+    else if (e.key === 'Tab')        { e.preventDefault(); selectCell(r, c + (e.shiftKey ? -1 : 1)); }
+    else if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (e.target.tagName === 'TD') { setCellRaw(r, c, ''); formulaBar.value = ''; }
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+      formulaBar.value = e.key;
+      formulaBar.focus();
+    }
+  });
+
+  // ── Formula bar ───────────────────────────────────────────────────────────
+  formulaBar.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      commitFormula();
+      selectCell(selected.r + 1, selected.c);
+    } else if (e.key === 'Escape') {
+      formulaBar.value = cells[key(selected.r, selected.c)]?.raw || '';
+      getCellEl(selected.r, selected.c)?.focus();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      commitFormula();
+      selectCell(selected.r, selected.c + (e.shiftKey ? -1 : 1));
+    }
+  });
+
+  function commitFormula() {
+    setCellRaw(selected.r, selected.c, formulaBar.value);
+    getCellEl(selected.r, selected.c)?.focus();
+  }
+
+  // ── Save / Load ───────────────────────────────────────────────────────────
+  function saveDoc() {
+    const title = titleEl.textContent.trim() || 'Tabelle1';
+    if (!docId) docId = JarvisDB.genId();
+    JarvisDB.saveDoc('calc', docId, { title, cells });
+    isDirty = false;
+    dirtyEl.textContent = '';
+    showNotify('Gespeichert: ' + title, 'success');
+  }
+
+  function loadDocById(id) {
+    const d = JarvisDB.loadDoc('calc', id);
+    if (!d) return;
+    docId = id;
+    titleEl.textContent = d.title || 'Tabelle1';
+    cells = d.cells || {};
+    // mark all occupied cells dirty
+    for (const k of Object.keys(cells)) dirty.add(k);
+    flushDirty();
+    isDirty = false;
+    dirtyEl.textContent = '';
+    selectCell(0, 0);
+  }
+
+  function newDoc() {
+    if (isDirty && !confirm('Ungespeicherte Änderungen verwerfen?')) return;
+    docId = null;
+    cells = {};
+    dirty.clear();
+    table.querySelectorAll('td').forEach(td => { td.textContent = ''; td.className = ''; });
+    titleEl.textContent = 'Tabelle1';
+    isDirty = false;
+    dirtyEl.textContent = '';
+    selectCell(0, 0);
+  }
+
+  function openDocDialog() {
+    const docs = JarvisDB.listDocs('calc');
+    if (!docs.length) { showNotify('Keine gespeicherten Tabellen.', 'info'); return; }
+    const rows = docs.map(d => `
+      <div class="doc-row" data-id="${sanitize(d.id)}" tabindex="0" role="button">
+        <span class="doc-row-title">${sanitize(d.title)}</span>
+        <span class="doc-row-date">${formatDateTime(new Date(d.modified))}</span>
+        <button class="btn btn-ghost btn-sm doc-delete" data-id="${sanitize(d.id)}" aria-label="Löschen">${icon('trash', 14)}</button>
+      </div>`).join('');
+    showModal(`<h3>Tabelle öffnen</h3><div class="doc-list">${rows}</div><div class="modal-actions"><button class="btn btn-ghost btn-cancel">Abbrechen</button></div>`, null);
+    container.querySelectorAll('.doc-row').forEach(row => {
+      row.addEventListener('click', e => {
+        if (e.target.closest('.doc-delete')) return;
+        if (isDirty && !confirm('Verwerfen?')) return;
+        loadDocById(row.dataset.id);
+        row.closest('.modal-overlay')?.remove();
+      });
+    });
+    container.querySelectorAll('.doc-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm('Löschen?')) return;
+        JarvisDB.deleteDoc('calc', btn.dataset.id);
+        btn.closest('.doc-row').remove();
+      });
+    });
+  }
+
+  // ── CSV Export ────────────────────────────────────────────────────────────
+  container.querySelector('#calc-export').addEventListener('click', () => {
+    const rows = [];
+    for (let r = 0; r < ROWS; r++) {
+      const row = [];
+      for (let c = 0; c < COLS; c++) {
+        const v = cells[key(r, c)]?.val ?? '';
+        row.push(typeof v === 'string' && v.includes(',') ? `"${v}"` : v);
+      }
+      // trim trailing empty
+      while (row.length && row[row.length - 1] === '') row.pop();
+      if (row.length) rows.push(row.join(','));
+    }
+    downloadFile(rows.join('\n'), (titleEl.textContent.trim() || 'Tabelle') + '.csv', 'text/csv');
+  });
+
+  // ── Wiring ────────────────────────────────────────────────────────────────
+  container.querySelector('.back-btn').addEventListener('click', () => {
+    if (isDirty && !confirm('Verwerfen?')) return;
+    goHome();
+  });
+  container.querySelector('#calc-new').addEventListener('click', newDoc);
+  container.querySelector('#calc-open').addEventListener('click', openDocDialog);
+  container.querySelector('#calc-save').addEventListener('click', saveDoc);
+  container.querySelector('#calc-insert-chart').addEventListener('click', () => showNotify('Diagramm-Funktion folgt in v2.1', 'info'));
+  titleEl.addEventListener('input', () => { isDirty = true; dirtyEl.textContent = '● Ungespeichert'; });
+
+  // Ctrl+S
+  container.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); }
+  });
+
+  buildTable();
+  selectCell(0, 0);
+}
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — MATRIX (Smart-Tabellen) ===== */
+
+function initMatrix(container) {
+  let docId = null;
+  let isDirty = false;
+
+  const DEFAULT_COLS = [
+    { id: 'c1', label: 'Name',    type: 'text'   },
+    { id: 'c2', label: 'Status',  type: 'select', options: ['Offen','In Arbeit','Erledigt'] },
+    { id: 'c3', label: 'Datum',   type: 'date'   },
+    { id: 'c4', label: 'Notiz',   type: 'text'   },
+  ];
+
+  let schema = DEFAULT_COLS.map(c => ({ ...c }));
+  let rows   = [];
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
+  container.innerHTML = `
+    <div class="app-chrome matrix-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title" id="matrix-title" contenteditable="true">Matrix1</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-ghost btn-sm" id="mx-new">${icon('filePlus', 15)} Neu</button>
+          <button class="btn btn-ghost btn-sm" id="mx-open">${icon('folderOpen', 15)} Öffnen</button>
+          <button class="btn btn-primary btn-sm" id="mx-save">${icon('save', 15)} Speichern</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <button class="btn btn-ghost btn-sm" id="mx-add-row">${icon('plus', 15)} Zeile</button>
+          <button class="btn btn-ghost btn-sm" id="mx-add-col">${icon('table', 15)} Spalte</button>
+          <button class="btn btn-ghost btn-sm" id="mx-export">${icon('download', 15)} CSV</button>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <input type="search" id="mx-search" class="tb-search" placeholder="Suchen…" aria-label="Suchen" />
+        </div>
+      </div>
+      <div class="matrix-scroll">
+        <table class="matrix-table" id="mx-table" role="grid"></table>
+      </div>
+      <div class="statusbar">
+        <span id="mx-count">0 Einträge</span>
+        <span id="mx-dirty"></span>
+      </div>
+    </div>
+  `;
+
+  const tableEl  = container.querySelector('#mx-table');
+  const titleEl  = container.querySelector('#matrix-title');
+  const dirtyEl  = container.querySelector('#mx-dirty');
+  const countEl  = container.querySelector('#mx-count');
+  const searchEl = container.querySelector('#mx-search');
+
+  function markDirty() { isDirty = true; dirtyEl.textContent = '● Ungespeichert'; }
+  function markClean() { isDirty = false; dirtyEl.textContent = ''; }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function render(filter = '') {
+    const q = filter.toLowerCase();
+    const visible = q ? rows.filter(r => Object.values(r.data).some(v => String(v).toLowerCase().includes(q))) : rows;
+
+    let html = '<thead><tr><th></th>';
+    schema.forEach(col => {
+      html += `<th data-col="${sanitize(col.id)}">${sanitize(col.label)} <button class="col-menu" data-col="${sanitize(col.id)}" title="Spalte bearbeiten">…</button></th>`;
+    });
+    html += '<th></th></thead><tbody>';
+
+    visible.forEach(row => {
+      html += `<tr data-rid="${sanitize(row.id)}"><td class="row-handle">${icon('chevronRight', 12)}</td>`;
+      schema.forEach(col => {
+        const val = row.data[col.id] ?? '';
+        if (col.type === 'select') {
+          const opts = (col.options || []).map(o => `<option${o === val ? ' selected' : ''}>${sanitize(o)}</option>`).join('');
+          html += `<td><select class="cell-select" data-row="${sanitize(row.id)}" data-col="${sanitize(col.id)}">${opts}</select></td>`;
+        } else if (col.type === 'date') {
+          html += `<td><input type="date" class="cell-input" value="${sanitize(val)}" data-row="${sanitize(row.id)}" data-col="${sanitize(col.id)}" /></td>`;
+        } else {
+          html += `<td><input type="text" class="cell-input" value="${sanitize(val)}" data-row="${sanitize(row.id)}" data-col="${sanitize(col.id)}" /></td>`;
+        }
+      });
+      html += `<td><button class="btn-icon row-delete" data-rid="${sanitize(row.id)}" aria-label="Zeile löschen">${icon('trash', 13)}</button></td></tr>`;
+    });
+    html += '</tbody>';
+    tableEl.innerHTML = html;
+    countEl.textContent = `${rows.length} Einträge`;
+    bindCellEvents();
+  }
+
+  function bindCellEvents() {
+    tableEl.querySelectorAll('.cell-input, .cell-select').forEach(el => {
+      el.addEventListener('change', e => {
+        const row = rows.find(r => r.id === e.target.dataset.row);
+        if (row) { row.data[e.target.dataset.col] = e.target.value; markDirty(); }
+      });
+    });
+    tableEl.querySelectorAll('.row-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        rows = rows.filter(r => r.id !== btn.dataset.rid);
+        markDirty();
+        render(searchEl.value);
+      });
+    });
+    tableEl.querySelectorAll('.col-menu').forEach(btn => {
+      btn.addEventListener('click', () => editColumn(btn.dataset.col));
+    });
+  }
+
+  // ── Add row ───────────────────────────────────────────────────────────────
+  function addRow() {
+    const row = { id: JarvisDB.genId(), data: {} };
+    rows.push(row);
+    markDirty();
+    render(searchEl.value);
+  }
+
+  // ── Add / Edit column ─────────────────────────────────────────────────────
+  function addColumn() {
+    showModal(`
+      <h3>Spalte hinzufügen</h3>
+      <div class="form-group"><label>Name</label><input type="text" id="col-name" value="Neue Spalte" /></div>
+      <div class="form-group">
+        <label>Typ</label>
+        <select id="col-type">
+          <option value="text">Text</option>
+          <option value="select">Auswahl</option>
+          <option value="date">Datum</option>
+        </select>
+      </div>
+      <div class="form-group" id="col-opts-wrap" style="display:none">
+        <label>Optionen (kommagetrennt)</label>
+        <input type="text" id="col-opts" placeholder="Option1, Option2" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-cancel">Abbrechen</button>
+        <button class="btn btn-primary btn-ok">Hinzufügen</button>
+      </div>
+    `, (modal) => {
+      const label   = modal.querySelector('#col-name').value.trim() || 'Spalte';
+      const type    = modal.querySelector('#col-type').value;
+      const optsRaw = modal.querySelector('#col-opts').value;
+      const options = type === 'select' ? optsRaw.split(',').map(o => o.trim()).filter(Boolean) : undefined;
+      schema.push({ id: JarvisDB.genId(), label, type, options });
+      markDirty();
+      render(searchEl.value);
+    });
+    // show/hide options field
+    setTimeout(() => {
+      const typeEl = document.querySelector('#col-type');
+      const wrap   = document.querySelector('#col-opts-wrap');
+      if (typeEl && wrap) {
+        typeEl.addEventListener('change', () => { wrap.style.display = typeEl.value === 'select' ? '' : 'none'; });
+      }
+    }, 0);
+  }
+
+  function editColumn(colId) {
+    const col = schema.find(c => c.id === colId);
+    if (!col) return;
+    showModal(`
+      <h3>Spalte bearbeiten</h3>
+      <div class="form-group"><label>Name</label><input type="text" id="col-name" value="${sanitize(col.label)}" /></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-cancel">Abbrechen</button>
+        <button class="btn btn-danger btn-delete" style="margin-right:auto">Löschen</button>
+        <button class="btn btn-primary btn-ok">Speichern</button>
+      </div>
+    `, (modal) => {
+      col.label = modal.querySelector('#col-name').value.trim() || col.label;
+      markDirty();
+      render(searchEl.value);
+    });
+    // delete button
+    setTimeout(() => {
+      document.querySelector('.btn-delete')?.addEventListener('click', () => {
+        if (!confirm('Spalte löschen?')) return;
+        schema = schema.filter(c => c.id !== colId);
+        rows.forEach(r => delete r.data[colId]);
+        markDirty();
+        render(searchEl.value);
+        document.querySelector('.modal-overlay')?.remove();
+      });
+    }, 0);
+  }
+
+  // ── Save / Load ───────────────────────────────────────────────────────────
+  function saveDoc() {
+    const title = titleEl.textContent.trim() || 'Matrix1';
+    if (!docId) docId = JarvisDB.genId();
+    JarvisDB.saveDoc('matrix', docId, { title, schema, rows });
+    markClean();
+    showNotify('Gespeichert: ' + title, 'success');
+  }
+
+  function loadDocById(id) {
+    const d = JarvisDB.loadDoc('matrix', id);
+    if (!d) return;
+    docId = id;
+    titleEl.textContent = d.title || 'Matrix1';
+    schema = d.schema || DEFAULT_COLS;
+    rows   = d.rows   || [];
+    markClean();
+    render();
+  }
+
+  function newDoc() {
+    if (isDirty && !confirm('Verwerfen?')) return;
+    docId = null;
+    schema = DEFAULT_COLS.map(c => ({ ...c }));
+    rows   = [];
+    titleEl.textContent = 'Matrix1';
+    markClean();
+    render();
+  }
+
+  function openDocDialog() {
+    const docs = JarvisDB.listDocs('matrix');
+    if (!docs.length) { showNotify('Keine Matrizen gefunden.', 'info'); return; }
+    const rowsHtml = docs.map(d => `
+      <div class="doc-row" data-id="${sanitize(d.id)}" tabindex="0" role="button">
+        <span class="doc-row-title">${sanitize(d.title)}</span>
+        <span class="doc-row-date">${formatDateTime(new Date(d.modified))}</span>
+        <button class="btn btn-ghost btn-sm doc-delete" data-id="${sanitize(d.id)}">${icon('trash', 14)}</button>
+      </div>`).join('');
+    showModal(`<h3>Matrix öffnen</h3><div class="doc-list">${rowsHtml}</div><div class="modal-actions"><button class="btn btn-ghost btn-cancel">Abbrechen</button></div>`, null);
+    container.querySelectorAll('.doc-row').forEach(r => {
+      r.addEventListener('click', e => {
+        if (e.target.closest('.doc-delete')) return;
+        if (isDirty && !confirm('Verwerfen?')) return;
+        loadDocById(r.dataset.id);
+        r.closest('.modal-overlay')?.remove();
+      });
+    });
+    container.querySelectorAll('.doc-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm('Löschen?')) return;
+        JarvisDB.deleteDoc('matrix', btn.dataset.id);
+        btn.closest('.doc-row').remove();
+      });
+    });
+  }
+
+  // ── CSV Export ────────────────────────────────────────────────────────────
+  container.querySelector('#mx-export').addEventListener('click', () => {
+    const header = schema.map(c => c.label).join(',');
+    const body   = rows.map(r => schema.map(c => {
+      const v = r.data[c.id] ?? '';
+      return v.includes(',') ? `"${v}"` : v;
+    }).join(',')).join('\n');
+    downloadFile(header + '\n' + body, (titleEl.textContent.trim() || 'Matrix') + '.csv', 'text/csv');
+  });
+
+  // ── Wiring ────────────────────────────────────────────────────────────────
+  container.querySelector('.back-btn').addEventListener('click', () => {
+    if (isDirty && !confirm('Verwerfen?')) return;
+    goHome();
+  });
+  container.querySelector('#mx-new').addEventListener('click', newDoc);
+  container.querySelector('#mx-open').addEventListener('click', openDocDialog);
+  container.querySelector('#mx-save').addEventListener('click', saveDoc);
+  container.querySelector('#mx-add-row').addEventListener('click', addRow);
+  container.querySelector('#mx-add-col').addEventListener('click', addColumn);
+  searchEl.addEventListener('input', () => render(searchEl.value));
+  titleEl.addEventListener('input', markDirty);
+  container.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); }
+  });
+
+  render();
+}
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — DRAW (Vektorgrafik) ===== */
+
+function initDraw(container) {
+  let tool = 'select';
+  let color = '#7c3aed';
+  let strokeWidth = 2;
+  let shapes = [];    // { id, type, x, y, w, h, text, fill, stroke, sw, rx }
+  let selected = null;
+  let dragging = null; // { shape, ox, oy }
+  let drawing  = null; // in-progress shape
+  let docId = null;
+  let isDirty = false;
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
+  container.innerHTML = `
+    <div class="app-chrome draw-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title" id="draw-title" contenteditable="true">Zeichnung1</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-ghost btn-sm" id="draw-new">${icon('filePlus', 15)} Neu</button>
+          <button class="btn btn-ghost btn-sm" id="draw-open">${icon('folderOpen', 15)} Öffnen</button>
+          <button class="btn btn-primary btn-sm" id="draw-save">${icon('save', 15)} Speichern</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-group" role="radiogroup" aria-label="Werkzeug">
+          <button class="tb-btn tool-btn active" data-tool="select"  title="Auswählen">${icon('eye', 16)}</button>
+          <button class="tb-btn tool-btn"         data-tool="rect"   title="Rechteck">▭</button>
+          <button class="tb-btn tool-btn"         data-tool="ellipse"title="Ellipse">◯</button>
+          <button class="tb-btn tool-btn"         data-tool="line"   title="Linie">╱</button>
+          <button class="tb-btn tool-btn"         data-tool="text"   title="Text">T</button>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <label class="tb-label" for="draw-color">Farbe</label>
+          <input type="color" id="draw-color" value="${color}" class="tb-color" aria-label="Farbe" />
+          <label class="tb-label" for="draw-sw">Strich</label>
+          <input type="range" id="draw-sw" min="1" max="20" value="${strokeWidth}" class="tb-range" aria-label="Strichbreite" style="width:70px" />
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <button class="btn btn-ghost btn-sm" id="draw-delete-sel" disabled>${icon('trash', 15)} Löschen</button>
+          <button class="btn btn-ghost btn-sm" id="draw-export">${icon('download', 15)} SVG</button>
+        </div>
+      </div>
+      <div class="draw-scroll">
+        <svg id="draw-canvas" class="draw-canvas" tabindex="0"
+             xmlns="http://www.w3.org/2000/svg"
+             aria-label="Zeichenfläche"
+             role="application"></svg>
+      </div>
+      <div class="statusbar">
+        <span id="draw-info">Werkzeug: Auswählen</span>
+        <span id="draw-dirty"></span>
+      </div>
+    </div>
+  `;
+
+  const svg      = container.querySelector('#draw-canvas');
+  const titleEl  = container.querySelector('#draw-title');
+  const dirtyEl  = container.querySelector('#draw-dirty');
+  const infoEl   = container.querySelector('#draw-info');
+  const colorIn  = container.querySelector('#draw-color');
+  const swIn     = container.querySelector('#draw-sw');
+  const delBtn   = container.querySelector('#draw-delete-sel');
+
+  function markDirty() { isDirty = true; dirtyEl.textContent = '● Ungespeichert'; }
+  function markClean() { isDirty = false; dirtyEl.textContent = ''; }
+
+  // ── SVG helpers ───────────────────────────────────────────────────────────
+  function svgEl(tag, attrs) {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+  }
+
+  function shapeToEl(s) {
+    let el;
+    if (s.type === 'rect') {
+      el = svgEl('rect', { x: s.x, y: s.y, width: s.w, height: s.h,
+        fill: s.fill || 'none', stroke: s.stroke, 'stroke-width': s.sw, rx: s.rx || 4 });
+    } else if (s.type === 'ellipse') {
+      el = svgEl('ellipse', { cx: s.x + s.w / 2, cy: s.y + s.h / 2, rx: s.w / 2, ry: s.h / 2,
+        fill: s.fill || 'none', stroke: s.stroke, 'stroke-width': s.sw });
+    } else if (s.type === 'line') {
+      el = svgEl('line', { x1: s.x, y1: s.y, x2: s.x + s.w, y2: s.y + s.h,
+        stroke: s.stroke, 'stroke-width': s.sw, 'stroke-linecap': 'round' });
+    } else if (s.type === 'text') {
+      el = svgEl('text', { x: s.x, y: s.y, fill: s.stroke, 'font-size': 16,
+        'font-family': 'var(--font-sans)' });
+      el.textContent = s.text || '';
+    } else return null;
+    el.dataset.id = s.id;
+    el.style.cursor = tool === 'select' ? 'move' : 'crosshair';
+    return el;
+  }
+
+  function renderAll() {
+    // keep defs if any
+    const existing = new Map();
+    svg.querySelectorAll('[data-id]').forEach(e => existing.set(e.dataset.id, e));
+
+    // remove deleted
+    for (const [id, el] of existing) {
+      if (!shapes.find(s => s.id === id)) el.remove();
+    }
+
+    // add/update
+    shapes.forEach(s => {
+      const oldEl = existing.get(s.id);
+      const newEl = shapeToEl(s);
+      if (!newEl) return;
+      newEl.classList.toggle('selected-shape', s.id === selected);
+      if (oldEl) oldEl.replaceWith(newEl);
+      else svg.appendChild(newEl);
+    });
+  }
+
+  // ── Pointer events ────────────────────────────────────────────────────────
+  function svgCoords(e) {
+    const rect = svg.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  svg.addEventListener('pointerdown', e => {
+    if (tool === 'select') {
+      const target = e.target.closest('[data-id]');
+      if (target) {
+        selected = target.dataset.id;
+        const s = shapes.find(sh => sh.id === selected);
+        dragging = { shape: s, ox: e.clientX - s.x, oy: e.clientY - s.y };
+        delBtn.disabled = false;
+        renderAll();
+      } else {
+        selected = null; delBtn.disabled = true; renderAll();
+      }
+      return;
+    }
+    if (tool === 'text') {
+      const { x, y } = svgCoords(e);
+      showModal(`
+        <h3>Text eingeben</h3>
+        <div class="form-group"><input type="text" id="text-input" value="" placeholder="Text…" /></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost btn-cancel">Abbrechen</button>
+          <button class="btn btn-primary btn-ok">Einfügen</button>
+        </div>
+      `, (modal) => {
+        const t = modal.querySelector('#text-input').value;
+        if (!t) return;
+        shapes.push({ id: JarvisDB.genId(), type: 'text', x, y, w: 0, h: 0, text: t, stroke: color, sw: strokeWidth });
+        markDirty(); renderAll();
+      });
+      return;
+    }
+    const { x, y } = svgCoords(e);
+    drawing = { id: JarvisDB.genId(), type: tool, x, y, w: 0, h: 0, stroke: color, sw: strokeWidth, fill: 'none' };
+    svg.setPointerCapture(e.pointerId);
+  });
+
+  svg.addEventListener('pointermove', e => {
+    if (dragging) {
+      dragging.shape.x = e.clientX - dragging.ox;
+      dragging.shape.y = e.clientY - dragging.oy;
+      markDirty(); renderAll();
+    } else if (drawing) {
+      const { x, y } = svgCoords(e);
+      drawing.w = x - drawing.x;
+      drawing.h = y - drawing.y;
+      // preview
+      let preview = svg.querySelector('#draw-preview');
+      if (!preview) {
+        preview = shapeToEl({ ...drawing, id: 'draw-preview' });
+        if (preview) { preview.id = 'draw-preview'; preview.dataset.id = ''; svg.appendChild(preview); }
+      } else {
+        const fresh = shapeToEl({ ...drawing, id: 'draw-preview' });
+        if (fresh) { fresh.id = 'draw-preview'; fresh.dataset.id = ''; preview.replaceWith(fresh); }
+      }
+    }
+  });
+
+  svg.addEventListener('pointerup', () => {
+    dragging = null;
+    if (drawing) {
+      svg.querySelector('#draw-preview')?.remove();
+      if (Math.abs(drawing.w) > 3 || Math.abs(drawing.h) > 3) {
+        shapes.push({ ...drawing });
+        markDirty(); renderAll();
+      }
+      drawing = null;
+    }
+  });
+
+  // ── Toolbar wiring ────────────────────────────────────────────────────────
+  container.querySelectorAll('.tool-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      tool = btn.dataset.tool;
+      infoEl.textContent = `Werkzeug: ${btn.title || tool}`;
+      svg.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+    });
+  });
+
+  colorIn.addEventListener('input', () => { color = colorIn.value; });
+  swIn.addEventListener('input', () => { strokeWidth = Number(swIn.value); });
+
+  delBtn.addEventListener('click', () => {
+    if (!selected) return;
+    shapes = shapes.filter(s => s.id !== selected);
+    selected = null; delBtn.disabled = true;
+    markDirty(); renderAll();
+  });
+
+  container.querySelector('#draw-export').addEventListener('click', () => {
+    const w = svg.clientWidth || 800, h = svg.clientHeight || 600;
+    const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${svg.innerHTML}</svg>`;
+    downloadFile(svgStr, (titleEl.textContent.trim() || 'Zeichnung') + '.svg', 'image/svg+xml');
+  });
+
+  // ── Save / Load ───────────────────────────────────────────────────────────
+  function saveDoc() {
+    const title = titleEl.textContent.trim() || 'Zeichnung1';
+    if (!docId) docId = JarvisDB.genId();
+    JarvisDB.saveDoc('draw', docId, { title, shapes });
+    markClean();
+    showNotify('Gespeichert: ' + title, 'success');
+  }
+
+  function loadDocById(id) {
+    const d = JarvisDB.loadDoc('draw', id);
+    if (!d) return;
+    docId = id; titleEl.textContent = d.title || 'Zeichnung1';
+    shapes = d.shapes || [];
+    markClean(); renderAll();
+  }
+
+  function newDoc() {
+    if (isDirty && !confirm('Verwerfen?')) return;
+    docId = null; shapes = []; titleEl.textContent = 'Zeichnung1';
+    markClean(); renderAll();
+  }
+
+  function openDocDialog() {
+    const docs = JarvisDB.listDocs('draw');
+    if (!docs.length) { showNotify('Keine Zeichnungen.', 'info'); return; }
+    const rowsHtml = docs.map(d => `
+      <div class="doc-row" data-id="${sanitize(d.id)}" tabindex="0" role="button">
+        <span class="doc-row-title">${sanitize(d.title)}</span>
+        <span class="doc-row-date">${formatDateTime(new Date(d.modified))}</span>
+        <button class="btn btn-ghost btn-sm doc-delete" data-id="${sanitize(d.id)}">${icon('trash', 14)}</button>
+      </div>`).join('');
+    showModal(`<h3>Zeichnung öffnen</h3><div class="doc-list">${rowsHtml}</div><div class="modal-actions"><button class="btn btn-ghost btn-cancel">Abbrechen</button></div>`, null);
+    container.querySelectorAll('.doc-row').forEach(r => {
+      r.addEventListener('click', e => {
+        if (e.target.closest('.doc-delete')) return;
+        if (isDirty && !confirm('Verwerfen?')) return;
+        loadDocById(r.dataset.id); r.closest('.modal-overlay')?.remove();
+      });
+    });
+    container.querySelectorAll('.doc-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm('Löschen?')) return;
+        JarvisDB.deleteDoc('draw', btn.dataset.id);
+        btn.closest('.doc-row').remove();
+      });
+    });
+  }
+
+  container.querySelector('.back-btn').addEventListener('click', () => {
+    if (isDirty && !confirm('Verwerfen?')) return; goHome();
+  });
+  container.querySelector('#draw-new').addEventListener('click', newDoc);
+  container.querySelector('#draw-open').addEventListener('click', openDocDialog);
+  container.querySelector('#draw-save').addEventListener('click', saveDoc);
+  titleEl.addEventListener('input', markDirty);
+  container.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); }
+    if (e.key === 'Delete' && selected) delBtn.click();
+  });
+
+  renderAll();
+}
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — PRESENT ===== */
+
+function initPresent(container) {
+  let slides = [{ id: JarvisDB.genId(), title: 'Folie 1', content: '', bg: '#1e1b4b', color: '#ffffff', layout: 'center' }];
+  let current = 0;
+  let docId = null;
+  let isDirty = false;
+  let presenting = false;
+
+  const LAYOUTS = ['center', 'left', 'split'];
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
+  container.innerHTML = `
+    <div class="app-chrome present-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title" id="pres-title" contenteditable="true">Präsentation1</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-ghost btn-sm" id="pres-new">${icon('filePlus', 15)} Neu</button>
+          <button class="btn btn-ghost btn-sm" id="pres-open">${icon('folderOpen', 15)} Öffnen</button>
+          <button class="btn btn-primary btn-sm" id="pres-save">${icon('save', 15)} Speichern</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <button class="btn btn-ghost btn-sm" id="pres-add-slide">${icon('plus', 15)} Folie</button>
+          <button class="btn btn-ghost btn-sm" id="pres-del-slide">${icon('trash', 15)} Löschen</button>
+          <button class="btn btn-ghost btn-sm" id="pres-move-up">${icon('chevronLeft', 15)}</button>
+          <button class="btn btn-ghost btn-sm" id="pres-move-down">${icon('chevronRight', 15)}</button>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <label class="tb-label">Hintergrund</label>
+          <input type="color" id="pres-bg" class="tb-color" value="#1e1b4b" aria-label="Hintergrundfarbe" />
+          <label class="tb-label">Text</label>
+          <input type="color" id="pres-fc" class="tb-color" value="#ffffff" aria-label="Textfarbe" />
+          <select id="pres-layout" class="tb-select" aria-label="Layout">
+            <option value="center">Zentriert</option>
+            <option value="left">Links</option>
+            <option value="split">Geteilt</option>
+          </select>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <button class="btn btn-primary btn-sm" id="pres-start">${icon('eye', 15)} Präsentieren</button>
+        </div>
+      </div>
+      <div class="present-workspace">
+        <div class="slide-panel" id="slide-panel" role="list" aria-label="Folien"></div>
+        <div class="slide-editor-area">
+          <div class="slide-preview" id="slide-preview" role="img" aria-label="Vorschau"></div>
+          <div class="slide-fields">
+            <div class="form-group">
+              <label for="slide-title-in">Titel</label>
+              <input type="text" id="slide-title-in" class="slide-field-in" />
+            </div>
+            <div class="form-group">
+              <label for="slide-content-in">Inhalt</label>
+              <textarea id="slide-content-in" class="slide-field-ta" rows="5"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="statusbar">
+        <span id="pres-counter">Folie 1 / 1</span>
+        <span id="pres-dirty"></span>
+      </div>
+    </div>
+    <div class="present-fullscreen hidden" id="pres-fs" tabindex="0" role="dialog" aria-modal="true" aria-label="Präsentation">
+      <div class="pres-fs-slide" id="pres-fs-slide"></div>
+      <div class="pres-fs-controls">
+        <button class="btn btn-ghost" id="fs-prev">${icon('chevronLeft', 20)}</button>
+        <span id="fs-counter">1 / 1</span>
+        <button class="btn btn-ghost" id="fs-next">${icon('chevronRight', 20)}</button>
+        <button class="btn btn-ghost" id="fs-exit">${icon('x', 18)} Beenden</button>
+      </div>
+    </div>
+  `;
+
+  const slidePanel   = container.querySelector('#slide-panel');
+  const preview      = container.querySelector('#slide-preview');
+  const titleInEl    = container.querySelector('#slide-title-in');
+  const contentInEl  = container.querySelector('#slide-content-in');
+  const titleEl      = container.querySelector('#pres-title');
+  const dirtyEl      = container.querySelector('#pres-dirty');
+  const counterEl    = container.querySelector('#pres-counter');
+  const bgIn         = container.querySelector('#pres-bg');
+  const fcIn         = container.querySelector('#pres-fc');
+  const layoutSel    = container.querySelector('#pres-layout');
+  const fsEl         = container.querySelector('#pres-fs');
+  const fsSlide      = container.querySelector('#pres-fs-slide');
+  const fsCounter    = container.querySelector('#fs-counter');
+
+  function markDirty() { isDirty = true; dirtyEl.textContent = '● Ungespeichert'; }
+  function markClean() { isDirty = false; dirtyEl.textContent = ''; }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function renderSlideThumb(s, idx) {
+    const div = document.createElement('div');
+    div.className = 'slide-thumb' + (idx === current ? ' active' : '');
+    div.setAttribute('role', 'listitem');
+    div.setAttribute('tabindex', '0');
+    div.setAttribute('aria-label', `Folie ${idx + 1}: ${s.title}`);
+    div.dataset.idx = idx;
+    div.innerHTML = `<div class="thumb-inner" style="background:${s.bg};color:${s.color}">
+      <strong>${sanitize(s.title)}</strong>
+    </div>
+    <span class="thumb-num">${idx + 1}</span>`;
+    div.addEventListener('click', () => selectSlide(idx));
+    div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') selectSlide(idx); });
+    return div;
+  }
+
+  function renderPanel() {
+    slidePanel.innerHTML = '';
+    slides.forEach((s, i) => slidePanel.appendChild(renderSlideThumb(s, i)));
+  }
+
+  function renderPreview() {
+    const s = slides[current];
+    preview.style.background = s.bg;
+    preview.style.color = s.color;
+    preview.style.textAlign = s.layout === 'left' ? 'left' : 'center';
+    preview.innerHTML = `<h2 class="slide-prev-title">${sanitize(s.title)}</h2>
+      <p class="slide-prev-content">${sanitize(s.content).replace(/\n/g, '<br>')}</p>`;
+    counterEl.textContent = `Folie ${current + 1} / ${slides.length}`;
+    bgIn.value = s.bg;
+    fcIn.value = s.color;
+    layoutSel.value = s.layout || 'center';
+    titleInEl.value  = s.title;
+    contentInEl.value = s.content;
+  }
+
+  function selectSlide(idx) {
+    current = Math.max(0, Math.min(idx, slides.length - 1));
+    renderPanel();
+    renderPreview();
+  }
+
+  // ── Fields sync ───────────────────────────────────────────────────────────
+  titleInEl.addEventListener('input',   () => { slides[current].title   = titleInEl.value;   markDirty(); renderPanel(); renderPreview(); });
+  contentInEl.addEventListener('input', () => { slides[current].content = contentInEl.value; markDirty(); renderPreview(); });
+  bgIn.addEventListener('input',    () => { slides[current].bg     = bgIn.value;    markDirty(); renderPreview(); });
+  fcIn.addEventListener('input',    () => { slides[current].color  = fcIn.value;    markDirty(); renderPreview(); });
+  layoutSel.addEventListener('change', () => { slides[current].layout = layoutSel.value; markDirty(); renderPreview(); });
+
+  // ── Slide management ──────────────────────────────────────────────────────
+  container.querySelector('#pres-add-slide').addEventListener('click', () => {
+    const newSlide = { id: JarvisDB.genId(), title: `Folie ${slides.length + 1}`, content: '', bg: '#1e1b4b', color: '#ffffff', layout: 'center' };
+    slides.splice(current + 1, 0, newSlide);
+    selectSlide(current + 1);
+    markDirty();
+  });
+
+  container.querySelector('#pres-del-slide').addEventListener('click', () => {
+    if (slides.length <= 1) { showNotify('Mindestens eine Folie erforderlich.', 'warn'); return; }
+    if (!confirm('Folie löschen?')) return;
+    slides.splice(current, 1);
+    selectSlide(Math.min(current, slides.length - 1));
+    markDirty();
+  });
+
+  container.querySelector('#pres-move-up').addEventListener('click', () => {
+    if (current <= 0) return;
+    [slides[current], slides[current - 1]] = [slides[current - 1], slides[current]];
+    selectSlide(current - 1);
+    markDirty();
+  });
+
+  container.querySelector('#pres-move-down').addEventListener('click', () => {
+    if (current >= slides.length - 1) return;
+    [slides[current], slides[current + 1]] = [slides[current + 1], slides[current]];
+    selectSlide(current + 1);
+    markDirty();
+  });
+
+  // ── Fullscreen presentation ───────────────────────────────────────────────
+  function renderFsSlide(idx) {
+    const s = slides[idx];
+    fsSlide.style.background = s.bg;
+    fsSlide.style.color = s.color;
+    fsSlide.style.textAlign = s.layout === 'left' ? 'left' : 'center';
+    fsSlide.innerHTML = `<h1 class="fs-title">${sanitize(s.title)}</h1>
+      <p class="fs-content">${sanitize(s.content).replace(/\n/g, '<br>')}</p>`;
+    fsCounter.textContent = `${idx + 1} / ${slides.length}`;
+  }
+
+  container.querySelector('#pres-start').addEventListener('click', () => {
+    presenting = true;
+    fsEl.classList.remove('hidden');
+    renderFsSlide(current);
+    fsEl.focus();
+  });
+
+  container.querySelector('#fs-exit').addEventListener('click', () => {
+    presenting = false; fsEl.classList.add('hidden');
+  });
+
+  container.querySelector('#fs-prev').addEventListener('click', () => {
+    if (current > 0) { current--; renderFsSlide(current); }
+  });
+  container.querySelector('#fs-next').addEventListener('click', () => {
+    if (current < slides.length - 1) { current++; renderFsSlide(current); }
+  });
+
+  fsEl.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      if (current < slides.length - 1) { current++; renderFsSlide(current); }
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      if (current > 0) { current--; renderFsSlide(current); }
+    } else if (e.key === 'Escape') {
+      presenting = false; fsEl.classList.add('hidden');
+    }
+  });
+
+  // ── Save / Load ───────────────────────────────────────────────────────────
+  function saveDoc() {
+    const title = titleEl.textContent.trim() || 'Präsentation1';
+    if (!docId) docId = JarvisDB.genId();
+    JarvisDB.saveDoc('present', docId, { title, slides });
+    markClean();
+    showNotify('Gespeichert: ' + title, 'success');
+  }
+
+  function loadDocById(id) {
+    const d = JarvisDB.loadDoc('present', id);
+    if (!d) return;
+    docId = id; titleEl.textContent = d.title || 'Präsentation1';
+    slides = d.slides || slides;
+    markClean(); selectSlide(0);
+  }
+
+  function newDoc() {
+    if (isDirty && !confirm('Verwerfen?')) return;
+    docId = null;
+    slides = [{ id: JarvisDB.genId(), title: 'Folie 1', content: '', bg: '#1e1b4b', color: '#ffffff', layout: 'center' }];
+    titleEl.textContent = 'Präsentation1';
+    markClean(); selectSlide(0);
+  }
+
+  function openDocDialog() {
+    const docs = JarvisDB.listDocs('present');
+    if (!docs.length) { showNotify('Keine Präsentationen.', 'info'); return; }
+    const rowsHtml = docs.map(d => `
+      <div class="doc-row" data-id="${sanitize(d.id)}" tabindex="0" role="button">
+        <span class="doc-row-title">${sanitize(d.title)}</span>
+        <span class="doc-row-date">${formatDateTime(new Date(d.modified))}</span>
+        <button class="btn btn-ghost btn-sm doc-delete" data-id="${sanitize(d.id)}">${icon('trash', 14)}</button>
+      </div>`).join('');
+    showModal(`<h3>Präsentation öffnen</h3><div class="doc-list">${rowsHtml}</div><div class="modal-actions"><button class="btn btn-ghost btn-cancel">Abbrechen</button></div>`, null);
+    container.querySelectorAll('.doc-row').forEach(r => {
+      r.addEventListener('click', e => {
+        if (e.target.closest('.doc-delete')) return;
+        if (isDirty && !confirm('Verwerfen?')) return;
+        loadDocById(r.dataset.id); r.closest('.modal-overlay')?.remove();
+      });
+    });
+    container.querySelectorAll('.doc-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm('Löschen?')) return;
+        JarvisDB.deleteDoc('present', btn.dataset.id);
+        btn.closest('.doc-row').remove();
+      });
+    });
+  }
+
+  container.querySelector('.back-btn').addEventListener('click', () => {
+    if (isDirty && !confirm('Verwerfen?')) return; goHome();
+  });
+  container.querySelector('#pres-new').addEventListener('click', newDoc);
+  container.querySelector('#pres-open').addEventListener('click', openDocDialog);
+  container.querySelector('#pres-save').addEventListener('click', saveDoc);
+  titleEl.addEventListener('input', markDirty);
+  container.addEventListener('keydown', e => {
+    if (!presenting && (e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); }
+  });
+
+  selectSlide(0);
+}
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — MAIL ===== */
+
+function initMail(container) {
+  // Offline mail client — stores messages in localStorage only
+  let messages = JarvisDB.get('mail_messages', []);
+  let selected = null;
+  let currentFolder = 'inbox';
+
+  const FOLDERS = [
+    { id: 'inbox',  label: 'Eingang',   icon: 'mail'    },
+    { id: 'sent',   label: 'Gesendet',  icon: 'forward' },
+    { id: 'drafts', label: 'Entwürfe',  icon: 'save'    },
+    { id: 'trash',  label: 'Papierkorb',icon: 'trash'   },
+  ];
+
+  // Seed demo messages if empty
+  if (!messages.length) {
+    messages = [
+      { id: JarvisDB.genId(), folder: 'inbox', from: 'jarvis@office.local', to: 'ich@lokal', subject: 'Willkommen bei Jarvis Mail', body: 'Das ist dein lokaler Mail-Client.\n\nNachrichten bleiben auf diesem Gerät.', date: Date.now(), read: false },
+    ];
+    saveMail();
+  }
+
+  function saveMail() { JarvisDB.set('mail_messages', messages); }
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
+  container.innerHTML = `
+    <div class="app-chrome mail-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title">Jarvis Mail</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-primary btn-sm" id="mail-compose">${icon('filePlus', 15)} Neue Mail</button>
+        </div>
+      </div>
+      <div class="mail-layout">
+        <nav class="mail-sidebar" role="navigation" aria-label="Ordner">
+          ${FOLDERS.map(f => `
+            <button class="folder-btn${f.id === currentFolder ? ' active' : ''}" data-folder="${f.id}">
+              ${icon(f.icon, 15)} ${f.label}
+              <span class="folder-badge" id="badge-${f.id}"></span>
+            </button>`).join('')}
+        </nav>
+        <div class="mail-list-area">
+          <div class="mail-list" id="mail-list" role="list" aria-label="Nachrichten"></div>
+          <div class="mail-detail" id="mail-detail" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="statusbar">
+        <span id="mail-status">Bereit</span>
+      </div>
+    </div>
+  `;
+
+  const mailList   = container.querySelector('#mail-list');
+  const mailDetail = container.querySelector('#mail-detail');
+  const statusEl   = container.querySelector('#mail-status');
+
+  // ── Badges ────────────────────────────────────────────────────────────────
+  function updateBadges() {
+    FOLDERS.forEach(f => {
+      const unread = messages.filter(m => m.folder === f.id && !m.read).length;
+      const badge = container.querySelector(`#badge-${f.id}`);
+      if (badge) { badge.textContent = unread || ''; badge.style.display = unread ? '' : 'none'; }
+    });
+  }
+
+  // ── Render list ───────────────────────────────────────────────────────────
+  function renderList() {
+    const folderMsgs = messages.filter(m => m.folder === currentFolder)
+      .sort((a, b) => b.date - a.date);
+    mailList.innerHTML = '';
+    if (!folderMsgs.length) {
+      mailList.innerHTML = '<div class="mail-empty">Keine Nachrichten.</div>';
+      mailDetail.innerHTML = '';
+      return;
+    }
+    folderMsgs.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'mail-item' + (m.read ? '' : ' unread') + (m.id === selected ? ' selected' : '');
+      div.setAttribute('role', 'listitem');
+      div.setAttribute('tabindex', '0');
+      div.innerHTML = `
+        <div class="mail-from">${sanitize(m.from)}</div>
+        <div class="mail-subject">${sanitize(m.subject)}</div>
+        <div class="mail-date">${formatDateTime(new Date(m.date))}</div>
+      `;
+      div.addEventListener('click', () => openMessage(m.id));
+      div.addEventListener('keydown', e => { if (e.key === 'Enter') openMessage(m.id); });
+      mailList.appendChild(div);
+    });
+    statusEl.textContent = `${folderMsgs.length} Nachrichten`;
+    updateBadges();
+  }
+
+  // ── Open message ──────────────────────────────────────────────────────────
+  function openMessage(id) {
+    selected = id;
+    const m = messages.find(msg => msg.id === id);
+    if (!m) return;
+    m.read = true;
+    saveMail();
+    renderList();
+    mailDetail.innerHTML = `
+      <div class="mail-detail-header">
+        <div class="mail-detail-subject">${sanitize(m.subject)}</div>
+        <div class="mail-detail-meta">
+          <span>Von: ${sanitize(m.from)}</span>
+          <span>An: ${sanitize(m.to)}</span>
+          <span>${formatDateTime(new Date(m.date))}</span>
+        </div>
+        <div class="mail-detail-actions">
+          <button class="btn btn-ghost btn-sm" id="mail-reply">${icon('reply', 14)} Antworten</button>
+          <button class="btn btn-ghost btn-sm" id="mail-forward">${icon('forward', 14)} Weiterleiten</button>
+          <button class="btn btn-ghost btn-sm" id="mail-trash-msg">${icon('trash', 14)} Löschen</button>
+        </div>
+      </div>
+      <div class="mail-body">${sanitize(m.body).replace(/\n/g, '<br>')}</div>
+    `;
+    container.querySelector('#mail-reply')?.addEventListener('click', () => composeReply(m));
+    container.querySelector('#mail-forward')?.addEventListener('click', () => composeForward(m));
+    container.querySelector('#mail-trash-msg')?.addEventListener('click', () => trashMsg(m.id));
+  }
+
+  function trashMsg(id) {
+    const m = messages.find(msg => msg.id === id);
+    if (!m) return;
+    if (m.folder === 'trash') {
+      if (!confirm('Endgültig löschen?')) return;
+      messages = messages.filter(msg => msg.id !== id);
+    } else {
+      m.folder = 'trash';
+    }
+    selected = null;
+    saveMail();
+    mailDetail.innerHTML = '';
+    renderList();
+  }
+
+  // ── Compose ───────────────────────────────────────────────────────────────
+  function openCompose({ to = '', subject = '', body = '', replyTo = null } = {}) {
+    showModal(`
+      <h3>Neue Nachricht</h3>
+      <div class="form-group"><label>An</label><input type="email" id="comp-to" value="${sanitize(to)}" placeholder="empfaenger@example.com" /></div>
+      <div class="form-group"><label>Betreff</label><input type="text" id="comp-subject" value="${sanitize(subject)}" /></div>
+      <div class="form-group"><label>Nachricht</label><textarea id="comp-body" rows="8" style="resize:vertical">${sanitize(body)}</textarea></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-cancel">Abbrechen</button>
+        <button class="btn btn-ghost btn-draft">Entwurf</button>
+        <button class="btn btn-primary btn-ok">Senden</button>
+      </div>
+    `, (modal) => {
+      const msg = {
+        id: JarvisDB.genId(),
+        folder: 'sent',
+        from: 'ich@lokal',
+        to:   modal.querySelector('#comp-to').value.trim(),
+        subject: modal.querySelector('#comp-subject').value.trim() || '(kein Betreff)',
+        body: modal.querySelector('#comp-body').value,
+        date: Date.now(),
+        read: true,
+      };
+      if (!msg.to) { showNotify('Bitte einen Empfänger angeben.', 'warn'); return; }
+      messages.push(msg);
+      if (replyTo) { const orig = messages.find(m => m.id === replyTo); if (orig) orig.replied = true; }
+      saveMail();
+      renderList();
+      showNotify('Gesendet.', 'success');
+    });
+
+    // Draft button
+    setTimeout(() => {
+      document.querySelector('.btn-draft')?.addEventListener('click', () => {
+        const modal = document.querySelector('.modal');
+        if (!modal) return;
+        const msg = {
+          id: JarvisDB.genId(), folder: 'drafts', from: 'ich@lokal',
+          to:      modal.querySelector('#comp-to').value.trim(),
+          subject: modal.querySelector('#comp-subject').value.trim() || '(kein Betreff)',
+          body:    modal.querySelector('#comp-body').value,
+          date: Date.now(), read: true,
+        };
+        messages.push(msg); saveMail(); renderList();
+        document.querySelector('.modal-overlay')?.remove();
+        showNotify('Als Entwurf gespeichert.', 'info');
+      });
+    }, 0);
+  }
+
+  function composeReply(orig) {
+    openCompose({
+      to: orig.from,
+      subject: orig.subject.startsWith('Re:') ? orig.subject : 'Re: ' + orig.subject,
+      body: `\n\n--- Original ---\nVon: ${orig.from}\n${orig.body}`,
+      replyTo: orig.id,
+    });
+  }
+
+  function composeForward(orig) {
+    openCompose({
+      subject: orig.subject.startsWith('Fwd:') ? orig.subject : 'Fwd: ' + orig.subject,
+      body: `\n\n--- Weitergeleitet von ${orig.from} ---\n${orig.body}`,
+    });
+  }
+
+  // ── Folder nav ────────────────────────────────────────────────────────────
+  container.querySelectorAll('.folder-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.folder-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFolder = btn.dataset.folder;
+      selected = null;
+      mailDetail.innerHTML = '';
+      renderList();
+    });
+  });
+
+  container.querySelector('#mail-compose').addEventListener('click', () => openCompose());
+  container.querySelector('.back-btn').addEventListener('click', goHome);
+
+  updateBadges();
+  renderList();
+}
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — NOTES ===== */
+
+function initNotes(container) {
+  let notes = JarvisDB.get('notes_list', []);
+  let selectedId = null;
+  let saveTimer = null;
+
+  if (!notes.length) {
+    notes = [{ id: JarvisDB.genId(), title: 'Erste Notiz', content: 'Hier steht deine erste Notiz.', modified: Date.now(), pinned: false }];
+    persist();
+  }
+
+  function persist() { JarvisDB.set('notes_list', notes); }
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
+  container.innerHTML = `
+    <div class="app-chrome notes-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title">Jarvis Notes</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-primary btn-sm" id="notes-new">${icon('plus', 15)} Neue Notiz</button>
+        </div>
+      </div>
+      <div class="notes-layout">
+        <div class="notes-sidebar">
+          <div class="notes-search-wrap">
+            <input type="search" id="notes-search" placeholder="Suchen…" aria-label="Notizen durchsuchen" />
+          </div>
+          <div class="notes-list" id="notes-list" role="list" aria-label="Notizen"></div>
+        </div>
+        <div class="notes-editor-area">
+          <div class="notes-toolbar">
+            <input type="text" id="notes-title-in" class="notes-title-in" placeholder="Titel" aria-label="Notiz-Titel" />
+            <button class="btn-icon" id="notes-pin" title="Anheften">${icon('pin', 16)}</button>
+            <button class="btn-icon" id="notes-delete" title="Löschen">${icon('trash', 16)}</button>
+            <button class="btn btn-ghost btn-sm" id="notes-export">${icon('download', 14)} TXT</button>
+          </div>
+          <textarea id="notes-content" class="notes-content" placeholder="Notiz beginnen…" aria-label="Notizinhalt"></textarea>
+        </div>
+      </div>
+      <div class="statusbar">
+        <span id="notes-count">0 Notizen</span>
+        <span id="notes-saved"></span>
+      </div>
+    </div>
+  `;
+
+  const listEl    = container.querySelector('#notes-list');
+  const titleIn   = container.querySelector('#notes-title-in');
+  const contentEl = container.querySelector('#notes-content');
+  const searchEl  = container.querySelector('#notes-search');
+  const countEl   = container.querySelector('#notes-count');
+  const savedEl   = container.querySelector('#notes-saved');
+  const pinBtn    = container.querySelector('#notes-pin');
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function currentNote() { return notes.find(n => n.id === selectedId) || null; }
+
+  function sorted(list) {
+    return [...list].sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return b.modified - a.modified;
+    });
+  }
+
+  function filtered(q) {
+    if (!q) return sorted(notes);
+    const lq = q.toLowerCase();
+    return sorted(notes.filter(n => n.title.toLowerCase().includes(lq) || n.content.toLowerCase().includes(lq)));
+  }
+
+  // ── Render list ───────────────────────────────────────────────────────────
+  function renderList(q = '') {
+    const vis = filtered(q);
+    listEl.innerHTML = '';
+    countEl.textContent = `${notes.length} Notiz${notes.length !== 1 ? 'en' : ''}`;
+    vis.forEach(n => {
+      const div = document.createElement('div');
+      div.className = 'note-item' + (n.id === selectedId ? ' active' : '') + (n.pinned ? ' pinned' : '');
+      div.setAttribute('role', 'listitem');
+      div.setAttribute('tabindex', '0');
+      div.innerHTML = `
+        <div class="note-item-title">${sanitize(n.title) || '(kein Titel)'}${n.pinned ? ' ' + icon('pin', 11) : ''}</div>
+        <div class="note-item-preview">${sanitize(n.content.slice(0, 60))}</div>
+        <div class="note-item-date">${formatDate(new Date(n.modified))}</div>
+      `;
+      div.addEventListener('click', () => selectNote(n.id));
+      div.addEventListener('keydown', e => { if (e.key === 'Enter') selectNote(n.id); });
+      listEl.appendChild(div);
+    });
+  }
+
+  // ── Select note ───────────────────────────────────────────────────────────
+  function selectNote(id) {
+    selectedId = id;
+    const n = currentNote();
+    if (!n) return;
+    titleIn.value    = n.title;
+    contentEl.value  = n.content;
+    pinBtn.classList.toggle('active', !!n.pinned);
+    renderList(searchEl.value);
+    contentEl.focus();
+  }
+
+  // ── Auto-save ─────────────────────────────────────────────────────────────
+  function scheduleAutoSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 1000);
+  }
+
+  function doSave() {
+    const n = currentNote();
+    if (!n) return;
+    n.title    = titleIn.value;
+    n.content  = contentEl.value;
+    n.modified = Date.now();
+    persist();
+    savedEl.textContent = 'Gespeichert';
+    setTimeout(() => { savedEl.textContent = ''; }, 1500);
+    renderList(searchEl.value);
+  }
+
+  titleIn.addEventListener('input',   scheduleAutoSave);
+  contentEl.addEventListener('input', scheduleAutoSave);
+
+  // ── New note ──────────────────────────────────────────────────────────────
+  function newNote() {
+    const n = { id: JarvisDB.genId(), title: 'Neue Notiz', content: '', modified: Date.now(), pinned: false };
+    notes.unshift(n);
+    persist();
+    selectNote(n.id);
+    titleIn.select();
+  }
+
+  // ── Delete ────────────────────────────────────────────────────────────────
+  function deleteNote() {
+    if (!selectedId) return;
+    if (!confirm('Notiz löschen?')) return;
+    notes = notes.filter(n => n.id !== selectedId);
+    persist();
+    selectedId = notes.length ? notes[0].id : null;
+    if (selectedId) selectNote(selectedId);
+    else { titleIn.value = ''; contentEl.value = ''; renderList(); }
+  }
+
+  // ── Pin ───────────────────────────────────────────────────────────────────
+  function togglePin() {
+    const n = currentNote();
+    if (!n) return;
+    n.pinned = !n.pinned;
+    n.modified = Date.now();
+    persist();
+    pinBtn.classList.toggle('active', n.pinned);
+    renderList(searchEl.value);
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  container.querySelector('#notes-export').addEventListener('click', () => {
+    const n = currentNote();
+    if (!n) return;
+    downloadFile(n.title + '\n' + '='.repeat(n.title.length) + '\n\n' + n.content,
+      (n.title || 'Notiz') + '.txt', 'text/plain');
+  });
+
+  // ── Wiring ────────────────────────────────────────────────────────────────
+  container.querySelector('#notes-new').addEventListener('click', newNote);
+  container.querySelector('#notes-delete').addEventListener('click', deleteNote);
+  pinBtn.addEventListener('click', togglePin);
+  searchEl.addEventListener('input', () => renderList(searchEl.value));
+  container.querySelector('.back-btn').addEventListener('click', () => {
+    clearTimeout(saveTimer); doSave(); goHome();
+  });
+
+  selectNote(notes[0].id);
+}
+
+</script>
+  <script>
+/* ===== JARVIS OFFICE v2 — CALENDAR ===== */
+
+function initCalendar(container) {
+  let events = JarvisDB.get('cal_events', []);
+  let viewDate = new Date();
+  let view = 'month'; // month | week | day
+
+  function persist() { JarvisDB.set('cal_events', events); }
+
+  const DOW = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
+  container.innerHTML = `
+    <div class="app-chrome cal-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title">Jarvis Calendar</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-primary btn-sm" id="cal-new-event">${icon('plus', 15)} Termin</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <button class="btn btn-ghost btn-sm" id="cal-prev">${icon('chevronLeft', 15)}</button>
+          <button class="btn btn-ghost btn-sm" id="cal-today">Heute</button>
+          <button class="btn btn-ghost btn-sm" id="cal-next">${icon('chevronRight', 15)}</button>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group" role="radiogroup" aria-label="Ansicht">
+          <button class="btn btn-ghost btn-sm view-btn active" data-view="month">Monat</button>
+          <button class="btn btn-ghost btn-sm view-btn" data-view="week">Woche</button>
+          <button class="btn btn-ghost btn-sm view-btn" data-view="day">Tag</button>
+        </div>
+      </div>
+      <div class="cal-title-bar" id="cal-title-bar"></div>
+      <div class="cal-body" id="cal-body" role="grid" aria-label="Kalender"></div>
+      <div class="statusbar">
+        <span id="cal-event-count">0 Termine</span>
+      </div>
+    </div>
+  `;
+
+  const titleBar = container.querySelector('#cal-title-bar');
+  const body     = container.querySelector('#cal-body');
+  const countEl  = container.querySelector('#cal-event-count');
+
+  // ── Date helpers ──────────────────────────────────────────────────────────
+  function isoDate(d) { return d.toISOString().slice(0, 10); }
+  function isToday(d) { return isoDate(d) === isoDate(new Date()); }
+  function eventsOnDay(dateStr) { return events.filter(e => e.date === dateStr); }
+
+  // ── Render month ──────────────────────────────────────────────────────────
+  function renderMonth() {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    titleBar.textContent = `${MONTHS[m]} ${y}`;
+    body.className = 'cal-body cal-month';
+
+    // day-of-week headers
+    let html = '<div class="cal-grid">';
+    DOW.forEach(d => { html += `<div class="cal-dow">${d}</div>`; });
+
+    const first = new Date(y, m, 1);
+    let dow = (first.getDay() + 6) % 7; // Mon=0
+    for (let i = 0; i < dow; i++) html += '<div class="cal-day other"></div>';
+
+    const days = new Date(y, m + 1, 0).getDate();
+    for (let d = 1; d <= days; d++) {
+      const date = new Date(y, m, d);
+      const ds   = isoDate(date);
+      const ev   = eventsOnDay(ds);
+      const todayCls = isToday(date) ? ' today' : '';
+      html += `<div class="cal-day${todayCls}" data-date="${ds}" tabindex="0" role="gridcell" aria-label="${d}. ${MONTHS[m]}">
+        <span class="cal-day-num">${d}</span>
+        <div class="cal-events-mini">
+          ${ev.slice(0, 3).map(e => `<div class="ev-dot" style="background:${e.color||'var(--accent)'}" title="${sanitize(e.title)}">${sanitize(e.title)}</div>`).join('')}
+          ${ev.length > 3 ? `<div class="ev-more">+${ev.length - 3}</div>` : ''}
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    bindDayClicks();
+    updateCount();
+  }
+
+  // ── Render week ───────────────────────────────────────────────────────────
+  function renderWeek() {
+    const dow = (viewDate.getDay() + 6) % 7;
+    const monday = new Date(viewDate);
+    monday.setDate(viewDate.getDate() - dow);
+    titleBar.textContent = `Woche vom ${formatDate(monday)}`;
+    body.className = 'cal-body cal-week';
+
+    let html = '<div class="cal-week-grid">';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const ds = isoDate(d);
+      const ev = eventsOnDay(ds);
+      const todayCls = isToday(d) ? ' today' : '';
+      html += `<div class="cal-week-col${todayCls}" data-date="${ds}" tabindex="0" role="gridcell" aria-label="${DOW[i]} ${formatDate(d)}">
+        <div class="cal-week-hdr">${DOW[i]}<br><strong>${d.getDate()}</strong></div>
+        <div class="cal-week-events">
+          ${ev.map(e => `<div class="ev-block" data-id="${e.id}" style="background:${e.color||'var(--accent)'}22;border-left:3px solid ${e.color||'var(--accent)'}">
+            <strong>${sanitize(e.title)}</strong>
+            ${e.time ? `<br><small>${sanitize(e.time)}</small>` : ''}
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    bindDayClicks();
+    bindEventClicks();
+    updateCount();
+  }
+
+  // ── Render day ────────────────────────────────────────────────────────────
+  function renderDay() {
+    const ds = isoDate(viewDate);
+    titleBar.textContent = formatDate(viewDate);
+    body.className = 'cal-body cal-day-view';
+    const ev = eventsOnDay(ds);
+
+    let html = `<div class="cal-day-header${isToday(viewDate) ? ' today' : ''}">
+      <span>${formatDate(viewDate)}</span>
+      <button class="btn btn-ghost btn-sm" data-date="${ds}" id="add-day-ev">${icon('plus', 14)} Termin</button>
+    </div>`;
+    if (!ev.length) html += '<div class="cal-no-events">Keine Termine.</div>';
+    else ev.forEach(e => {
+      html += `<div class="ev-card" data-id="${e.id}" style="border-left:4px solid ${e.color||'var(--accent)'}">
+        <div class="ev-card-title">${sanitize(e.title)}</div>
+        ${e.time ? `<div class="ev-card-time">${sanitize(e.time)}</div>` : ''}
+        ${e.desc ? `<div class="ev-card-desc">${sanitize(e.desc)}</div>` : ''}
+        <button class="btn btn-ghost btn-sm ev-edit" data-id="${e.id}" style="margin-top:6px">${icon('settings', 13)} Bearbeiten</button>
+        <button class="btn btn-ghost btn-sm ev-del" data-id="${e.id}">${icon('trash', 13)}</button>
+      </div>`;
+    });
+    body.innerHTML = html;
+    container.querySelector('#add-day-ev')?.addEventListener('click', () => openEventForm(ds));
+    bindEventClicks();
+    updateCount();
+  }
+
+  // ── Render dispatcher ─────────────────────────────────────────────────────
+  function render() {
+    if (view === 'month') renderMonth();
+    else if (view === 'week') renderWeek();
+    else renderDay();
+  }
+
+  function bindDayClicks() {
+    body.querySelectorAll('[data-date]').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('.ev-dot, .ev-block')) return;
+        openEventForm(el.dataset.date);
+      });
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') openEventForm(el.dataset.date); });
+    });
+  }
+
+  function bindEventClicks() {
+    body.querySelectorAll('.ev-block, .ev-dot').forEach(el => {
+      const id = el.dataset.id || el.closest('[data-id]')?.dataset.id;
+      if (id) el.addEventListener('click', e => { e.stopPropagation(); openEventDetail(id); });
+    });
+    body.querySelectorAll('.ev-edit').forEach(btn => {
+      btn.addEventListener('click', () => openEventDetail(btn.dataset.id));
+    });
+    body.querySelectorAll('.ev-del').forEach(btn => {
+      btn.addEventListener('click', () => deleteEvent(btn.dataset.id));
+    });
+  }
+
+  function updateCount() {
+    countEl.textContent = `${events.length} Termin${events.length !== 1 ? 'e' : ''}`;
+  }
+
+  // ── Event form ────────────────────────────────────────────────────────────
+  function openEventForm(dateStr, existingId = null) {
+    const ex = existingId ? events.find(e => e.id === existingId) : null;
+    showModal(`
+      <h3>${ex ? 'Termin bearbeiten' : 'Neuer Termin'}</h3>
+      <div class="form-group"><label>Titel</label><input type="text" id="ev-title" value="${sanitize(ex?.title || '')}" /></div>
+      <div class="form-group"><label>Datum</label><input type="date" id="ev-date" value="${ex?.date || dateStr}" /></div>
+      <div class="form-group"><label>Uhrzeit</label><input type="time" id="ev-time" value="${ex?.time || ''}" /></div>
+      <div class="form-group"><label>Beschreibung</label><textarea id="ev-desc" rows="3">${sanitize(ex?.desc || '')}</textarea></div>
+      <div class="form-group">
+        <label>Farbe</label>
+        <input type="color" id="ev-color" value="${ex?.color || '#7c3aed'}" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-cancel">Abbrechen</button>
+        ${ex ? `<button class="btn btn-danger btn-del-ev">Löschen</button>` : ''}
+        <button class="btn btn-primary btn-ok">${ex ? 'Speichern' : 'Hinzufügen'}</button>
+      </div>
+    `, (modal) => {
+      const title = modal.querySelector('#ev-title').value.trim();
+      if (!title) { showNotify('Bitte einen Titel eingeben.', 'warn'); return; }
+      const ev = {
+        id:    ex?.id || JarvisDB.genId(),
+        title,
+        date:  modal.querySelector('#ev-date').value || dateStr,
+        time:  modal.querySelector('#ev-time').value,
+        desc:  modal.querySelector('#ev-desc').value,
+        color: modal.querySelector('#ev-color').value,
+      };
+      if (ex) {
+        const idx = events.findIndex(e => e.id === ex.id);
+        if (idx !== -1) events[idx] = ev;
+      } else {
+        events.push(ev);
+      }
+      persist(); render();
+    });
+    // delete from form
+    setTimeout(() => {
+      document.querySelector('.btn-del-ev')?.addEventListener('click', () => {
+        if (!confirm('Termin löschen?')) return;
+        deleteEvent(existingId);
+        document.querySelector('.modal-overlay')?.remove();
+      });
+    }, 0);
+  }
+
+  function openEventDetail(id) { openEventForm(null, id); }
+
+  function deleteEvent(id) {
+    events = events.filter(e => e.id !== id);
+    persist(); render();
+  }
+
+  // ── Nav ───────────────────────────────────────────────────────────────────
+  container.querySelector('#cal-prev').addEventListener('click', () => {
+    if (view === 'month')  viewDate.setMonth(viewDate.getMonth() - 1);
+    else if (view === 'week') viewDate.setDate(viewDate.getDate() - 7);
+    else viewDate.setDate(viewDate.getDate() - 1);
+    render();
+  });
+  container.querySelector('#cal-next').addEventListener('click', () => {
+    if (view === 'month')  viewDate.setMonth(viewDate.getMonth() + 1);
+    else if (view === 'week') viewDate.setDate(viewDate.getDate() + 7);
+    else viewDate.setDate(viewDate.getDate() + 1);
+    render();
+  });
+  container.querySelector('#cal-today').addEventListener('click', () => { viewDate = new Date(); render(); });
+
+  container.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      view = btn.dataset.view;
+      render();
+    });
+  });
+
+  container.querySelector('#cal-new-event').addEventListener('click', () => openEventForm(isoDate(viewDate)));
+  container.querySelector('.back-btn').addEventListener('click', goHome);
+
+  render();
+}
+
+</script>
+</body>
+</html>
