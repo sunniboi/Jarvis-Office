@@ -12,6 +12,7 @@ const APPS = {
   agents:   { name: 'Jarvis Agenten Office', desc: 'Skills & Agenten-Team', color: 'var(--app-agents)', init: (c) => initAgents(c) },
   skills:   { name: 'Find Skills',     desc: 'Feature-Suche',        color: 'var(--app-skills)',   init: (c) => initSkills(c) },
   anydoc:   { name: 'Jarvis AnyDoc',   desc: 'Dokument-Viewer',      color: 'var(--app-anydoc)',   init: (c) => initAnyDoc(c) },
+  tasks:    { name: 'Task Observer',   desc: 'Aufgaben & Projekte',  color: 'var(--app-tasks)',    init: (c) => initTasks(c) },
 };
 
 // App icons as SVG paths (color inherits from parent)
@@ -27,6 +28,7 @@ const APP_ICONS = {
   agents:   '<circle cx="12" cy="5" r="2.5" stroke-width="1.5"/><circle cx="5" cy="18" r="2.5" stroke-width="1.5"/><circle cx="19" cy="18" r="2.5" stroke-width="1.5"/><path d="M12 7.5v4M12 11.5L6.5 16M12 11.5l5.5 4.5" stroke-width="1.5" stroke-linecap="round"/>',
   skills:   '<circle cx="11" cy="11" r="8" stroke-width="1.5"/><path d="M21 21l-4.35-4.35" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="11" x2="14" y2="11" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="8" x2="11" y2="14" stroke-width="1.5" stroke-linecap="round"/>',
   anydoc:   '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke-width="1.5"/><path d="M14 2v6h6" stroke-width="1.5"/><path d="M10 13l2-2 2 2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="11" x2="12" y2="17" stroke-width="1.5" stroke-linecap="round"/>',
+  tasks:    '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.5"/><polyline points="9,11 12,14 17,9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="7" y1="7" x2="17" y2="7" stroke-width="1.5" stroke-linecap="round"/>',
 };
 
 let currentApp = null;
