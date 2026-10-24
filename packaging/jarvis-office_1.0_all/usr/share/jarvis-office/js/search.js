@@ -136,7 +136,7 @@ function closeSearch() {
 
 // Ctrl+K / Strg+K öffnet die Suche global
 document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+  if (e.ctrlKey && e.key === 'k') {
     e.preventDefault();
     if (_searchOverlay) closeSearch();
     else openSearch();
