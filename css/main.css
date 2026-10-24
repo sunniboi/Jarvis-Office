@@ -29,6 +29,7 @@
   --app-mail:     #06b6d4;
   --app-notes:    #f97316;
   --app-calendar: #14b8a6;
+  --app-skills:   #a855f7;
 
   --font-sans: Inter, 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
@@ -737,3 +738,108 @@ label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; display: 
 
 /* btn-icon active */
 .btn-icon.active { color: var(--accent-hi); }
+
+/* ========== FIND SKILLS ========== */
+.skills-app {
+  display: flex; flex-direction: column; height: 100%; overflow: hidden;
+}
+
+.skills-search-bar {
+  padding: 16px 24px 12px; background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.skills-search-wrap {
+  position: relative; display: flex; align-items: center;
+}
+
+.skills-search-icon {
+  position: absolute; left: 12px; width: 18px; height: 18px;
+  color: var(--text-faint); pointer-events: none;
+}
+
+.skills-search-input {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 10px 40px 10px 40px;
+  color: var(--text); font-family: var(--font-sans); font-size: 14px;
+  transition: border-color 150ms;
+}
+.skills-search-input:focus { outline: none; border-color: var(--accent); }
+.skills-search-input::placeholder { color: var(--text-faint); }
+
+.skills-search-clear {
+  position: absolute; right: 10px; background: none; border: none;
+  color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 4px;
+  border-radius: var(--r-sm); line-height: 1;
+  transition: color 100ms;
+}
+.skills-search-clear:hover { color: var(--text); }
+
+.skills-filters {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+
+.skills-filter-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-muted); border-radius: 20px; padding: 4px 14px;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.skills-filter-btn:hover { border-color: var(--fc, var(--accent)); color: var(--fc, var(--accent)); }
+.skills-filter-btn.active {
+  background: var(--fc, var(--accent)); border-color: var(--fc, var(--accent));
+  color: #fff;
+}
+
+.skills-results {
+  flex: 1; overflow-y: auto; padding: 16px 24px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px; align-content: start;
+}
+
+.skill-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.skill-card:hover { border-color: var(--border-hi); box-shadow: var(--shadow-sm); }
+
+.skill-app-badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  align-self: flex-start;
+}
+
+.skill-body { flex: 1; }
+.skill-name { font-size: 14px; font-weight: 600; color: var(--text); display: block; margin-bottom: 4px; }
+.skill-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0; }
+
+.skill-hl { background: rgba(124,58,237,.3); color: var(--accent-hi); border-radius: 2px; padding: 0 1px; }
+
+.skill-open-btn {
+  align-self: flex-end; background: var(--bc, var(--accent))22;
+  border: 1px solid var(--bc, var(--accent))44; color: var(--bc, var(--accent));
+  border-radius: var(--r-sm); padding: 4px 14px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background 120ms, border-color 120ms;
+}
+.skill-open-btn:hover { background: var(--bc, var(--accent))44; border-color: var(--bc, var(--accent)); }
+.skill-open-btn:focus-visible { outline: 2px solid var(--bc, var(--accent)); outline-offset: 2px; }
+
+.skills-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; color: var(--text-muted); padding: 48px;
+}
+.skills-empty svg { width: 48px; height: 48px; opacity: .3; }
+.skills-empty p { font-size: 16px; font-weight: 600; }
+.skills-empty span { font-size: 13px; color: var(--text-faint); }
+
+.btn-back {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; background: none; border: none;
+  color: var(--text-muted); cursor: pointer; border-radius: var(--r-sm);
+  transition: color 120ms, background 120ms; flex-shrink: 0;
+}
+.btn-back:hover { color: var(--text); background: var(--surface); }
+.btn-back svg { width: 18px; height: 18px; }
