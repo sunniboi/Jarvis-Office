@@ -1,0 +1,9 @@
+{
+  "main": {
+    "id": "main",
+    "type": "split",
+    "children": []
+  },
+  "left": { "id": "left", "type": "split", "children": [], "collapsed": true },
+  "right": { "id": "right", "type": "split", "children": [], "collapsed": true }
+}
