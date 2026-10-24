@@ -4,100 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jarvis Office</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
   <div id="app">
-    <!-- Splash / Launcher -->
-    <div id="launcher" class="launcher">
+    <div id="launcher" class="launcher" role="main">
       <header class="launcher-header">
         <div class="logo">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <rect width="48" height="48" rx="12" fill="#1a1a2e"/>
-            <path d="M12 24 L24 12 L36 24 L24 36 Z" fill="#7c3aed" opacity="0.8"/>
-            <circle cx="24" cy="24" r="6" fill="#a78bfa"/>
+          <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+            <rect width="40" height="40" rx="10" fill="var(--accent)"/>
+            <path d="M10 20 L20 10 L30 20 L20 30 Z" fill="rgba(255,255,255,0.25)"/>
+            <circle cx="20" cy="20" r="5" fill="#fff"/>
           </svg>
           <span>Jarvis Office</span>
         </div>
-        <div class="launcher-meta">
-          <span id="clock"></span>
+        <div class="launcher-right">
+          <time id="clock" aria-live="polite"></time>
+          <button id="btn-settings" class="btn-icon" aria-label="Einstellungen öffnen">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.22 4.22l1.06 1.06M14.72 14.72l1.06 1.06M4.22 15.78l1.06-1.06M14.72 5.28l1.06-1.06"/></svg>
+          </button>
         </div>
       </header>
 
-      <main class="launcher-grid">
-        <button class="app-card" onclick="launchApp('write')" data-app="write">
-          <div class="app-icon write-icon">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="6" y="6" width="28" height="32" rx="3" fill="#3b82f6" opacity="0.15"/><rect x="6" y="6" width="28" height="32" rx="3" stroke="#3b82f6" stroke-width="2"/><line x1="12" y1="14" x2="28" y2="14" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="20" x2="28" y2="20" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="26" x2="22" y2="26" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
-          <span class="app-name">Jarvis Write</span>
-          <span class="app-desc">Textverarbeitung</span>
-        </button>
-
-        <button class="app-card" onclick="launchApp('calc')" data-app="calc">
-          <div class="app-icon calc-icon">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="5" y="5" width="30" height="30" rx="3" fill="#10b981" opacity="0.15"/><rect x="5" y="5" width="30" height="30" rx="3" stroke="#10b981" stroke-width="2"/><line x1="5" y1="14" x2="35" y2="14" stroke="#10b981" stroke-width="1.5"/><line x1="5" y1="22" x2="35" y2="22" stroke="#10b981" stroke-width="1.5"/><line x1="14" y1="5" x2="14" y2="35" stroke="#10b981" stroke-width="1.5"/><line x1="23" y1="5" x2="23" y2="35" stroke="#10b981" stroke-width="1.5"/></svg>
-          </div>
-          <span class="app-name">Jarvis Calc</span>
-          <span class="app-desc">Tabellenkalkulation</span>
-        </button>
-
-        <button class="app-card" onclick="launchApp('matrix')" data-app="matrix">
-          <div class="app-icon matrix-icon">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="5" y="5" width="30" height="30" rx="3" fill="#f59e0b" opacity="0.15"/><rect x="5" y="5" width="30" height="30" rx="3" stroke="#f59e0b" stroke-width="2"/><polyline points="8,28 16,18 22,24 30,12" stroke="#f59e0b" stroke-width="2" fill="none" stroke-linejoin="round"/><circle cx="30" cy="12" r="2" fill="#f59e0b"/></svg>
-          </div>
-          <span class="app-name">Jarvis Matrix</span>
-          <span class="app-desc">Smart-Tabellen + KI</span>
-        </button>
-
-        <button class="app-card" onclick="launchApp('draw')" data-app="draw">
-          <div class="app-icon draw-icon">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="5" y="5" width="30" height="30" rx="3" fill="#ec4899" opacity="0.15"/><rect x="5" y="5" width="30" height="30" rx="3" stroke="#ec4899" stroke-width="2"/><path d="M12 28 Q18 15 26 22 Q32 28 28 12" stroke="#ec4899" stroke-width="2" fill="none"/><circle cx="12" cy="28" r="2" fill="#ec4899"/></svg>
-          </div>
-          <span class="app-name">Jarvis Draw</span>
-          <span class="app-desc">Vektorgrafik</span>
-        </button>
-
-        <button class="app-card" onclick="launchApp('present')" data-app="present">
-          <div class="app-icon present-icon">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="4" y="8" width="32" height="22" rx="3" fill="#8b5cf6" opacity="0.15"/><rect x="4" y="8" width="32" height="22" rx="3" stroke="#8b5cf6" stroke-width="2"/><line x1="20" y1="30" x2="20" y2="36" stroke="#8b5cf6" stroke-width="2"/><line x1="14" y1="36" x2="26" y2="36" stroke="#8b5cf6" stroke-width="2"/></svg>
-          </div>
-          <span class="app-name">Jarvis Present</span>
-          <span class="app-desc">Präsentationen</span>
-        </button>
-
-        <button class="app-card" onclick="launchApp('mail')" data-app="mail">
-          <div class="app-icon mail-icon">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="5" y="10" width="30" height="22" rx="3" fill="#06b6d4" opacity="0.15"/><rect x="5" y="10" width="30" height="22" rx="3" stroke="#06b6d4" stroke-width="2"/><polyline points="5,12 20,23 35,12" stroke="#06b6d4" stroke-width="2" fill="none"/></svg>
-          </div>
-          <span class="app-name">Jarvis Mail</span>
-          <span class="app-desc">E-Mail-Client</span>
-        </button>
-
-        <button class="app-card" onclick="launchApp('notes')" data-app="notes">
-          <div class="app-icon notes-icon">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="7" y="5" width="22" height="30" rx="2" fill="#f97316" opacity="0.15"/><rect x="7" y="5" width="22" height="30" rx="2" stroke="#f97316" stroke-width="2"/><rect x="11" y="3" width="4" height="6" rx="1" fill="#f97316"/><rect x="17" y="3" width="4" height="6" rx="1" fill="#f97316"/><line x1="12" y1="18" x2="24" y2="18" stroke="#f97316" stroke-width="1.5"/><line x1="12" y1="23" x2="22" y2="23" stroke="#f97316" stroke-width="1.5"/><line x1="28" y1="22" x2="35" y2="15" stroke="#f97316" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
-          <span class="app-name">Jarvis Notes</span>
-          <span class="app-desc">Schnellnotizen</span>
-        </button>
-
-        <button class="app-card" onclick="launchApp('calendar')" data-app="calendar">
-          <div class="app-icon cal-icon">
-            <svg viewBox="0 0 40 40" fill="none"><rect x="5" y="8" width="30" height="28" rx="3" fill="#14b8a6" opacity="0.15"/><rect x="5" y="8" width="30" height="28" rx="3" stroke="#14b8a6" stroke-width="2"/><line x1="5" y1="16" x2="35" y2="16" stroke="#14b8a6" stroke-width="2"/><rect x="12" y="4" width="4" height="8" rx="2" fill="#14b8a6"/><rect x="24" y="4" width="4" height="8" rx="2" fill="#14b8a6"/><rect x="12" y="21" width="5" height="5" rx="1" fill="#14b8a6" opacity="0.6"/><rect x="22" y="21" width="5" height="5" rx="1" fill="#14b8a6" opacity="0.6"/></svg>
-          </div>
-          <span class="app-name">Jarvis Calendar</span>
-          <span class="app-desc">Kalender & Termine</span>
-        </button>
+      <main class="launcher-grid" id="launcher-grid" role="list" aria-label="Anwendungen">
       </main>
 
       <footer class="launcher-footer">
-        <button onclick="openSettings()" class="btn-ghost">⚙ Einstellungen</button>
-        <span>Jarvis Office v1.0 — dein persönliches Office</span>
+        <span>Jarvis Office v2.0</span>
       </footer>
     </div>
 
-    <!-- App Container -->
-    <div id="app-container" class="app-container hidden"></div>
+    <div id="app-container" class="app-container hidden" role="region" aria-label="Aktive Anwendung"></div>
   </div>
 
   <script src="js/utils.js"></script>
@@ -111,5 +51,6 @@
   <script src="js/mail.js"></script>
   <script src="js/notes.js"></script>
   <script src="js/calendar.js"></script>
+  <script src="js/agent.js"></script>
 </body>
 </html>
