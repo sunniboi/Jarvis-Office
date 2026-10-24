@@ -48,6 +48,16 @@ chromium --app=file:///usr/share/jarvis-office/index.html
 - KI-Features
 - Kollaboration / WebSocket
 
+## Alle Projekte (GitHub: sunniboi)
+
+| Repo | Sichtbarkeit | Letzter Push | Notiz |
+|---|---|---|---|
+| **Jarvis-Office** | privat | 2026-10-24 | Dieses Projekt — Offline-Office-Suite |
+| **bierdeckel-rechner** | öffentlich | 2026-10-22 | Kleiner Web-Rechner |
+| **Paywallscanner** | privat | 2026-10-06 | Paywall-Erkennung (Tool/Scanner) |
+| **RadioPlayerV3** | öffentlich (Fork) | 2026-09-11 | Web-Radio-Player |
+| **MusicPlayer** | öffentlich (Fork) | 2022-01-19 | Älterer Music-Player |
+
 ## Git-Branch für neue Features
 `claude/projects-skills-installed-h5d0ef`
 
