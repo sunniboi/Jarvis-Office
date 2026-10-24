@@ -1,11 +1,11 @@
 Package: jarvis-office
-Version: 1.0
+Version: 2.0
 Section: office
 Priority: optional
 Architecture: all
 Depends: xdg-utils
 Recommends: chromium-browser | chromium | google-chrome-stable | firefox
-Installed-Size: 512
+Installed-Size: 268
 Maintainer: Jarvis Office <sunniboi@freenet.de>
 Homepage: https://github.com/sunniboi/Jarvis-Office
 Description: Jarvis Office — vollständige Office-Suite im Browser

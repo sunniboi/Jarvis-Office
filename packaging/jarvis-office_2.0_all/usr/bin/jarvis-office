@@ -13,12 +13,20 @@ fi
 # Browser-Reihenfolge: Chromium-App-Modus bevorzugt (kein Browser-Chrome = sauberes Fenster)
 launch_chromium_app() {
     local bin="$1"
+    local extra_flags=""
+
+    # Wayland-Unterstützung: automatisch erkennen
+    if [ "$XDG_SESSION_TYPE" = "wayland" ] || [ -n "$WAYLAND_DISPLAY" ]; then
+        extra_flags="--ozone-platform=wayland --enable-features=UseOzonePlatform"
+    fi
+
     "$bin" --app="file://$INDEX" \
            --window-size=1400,900 \
            --user-data-dir="$HOME/.config/jarvis-office" \
            --no-first-run \
            --disable-translate \
            --noerrdialogs \
+           $extra_flags \
            2>/dev/null &
 }
 
