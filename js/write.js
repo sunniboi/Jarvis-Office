@@ -123,7 +123,7 @@ function initWrite(container) {
     if (!d) return;
     docId = id;
     setTitle(d.title);
-    editor.innerHTML = d.html || '';
+    editor.innerHTML = Strix.sanitizeHTML(d.html || '');
     markClean();
     countWords();
     editor.focus();
