@@ -115,7 +115,7 @@ function initMail(container) {
           <button class="btn btn-ghost btn-sm" id="mail-trash-msg">${icon('trash', 14)} Löschen</button>
         </div>
       </div>
-      <div class="mail-body">${sanitize(m.body).replace(/\n/g, '<br>')}</div>
+      <div class="mail-body">${Strix.sanitizeHTML(sanitize(m.body).replace(/\n/g, '<br>'))}</div>
     `;
     container.querySelector('#mail-reply')?.addEventListener('click', () => composeReply(m));
     container.querySelector('#mail-forward')?.addEventListener('click', () => composeForward(m));
