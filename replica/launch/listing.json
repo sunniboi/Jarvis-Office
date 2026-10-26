@@ -1,0 +1,16 @@
+{
+  "avoid": [],
+  "app_store": {
+    "name": "Jarvis Office",
+    "subtitle": "Offline personal office suite",
+    "promotional_text": "Works without internet. No account needed. Write, calculate, plan and draw — all in one place.",
+    "description": "Jarvis Office is a personal office suite that runs entirely in your browser.\n\nNo account. No cloud. No internet required.\n\nEverything is stored on your device. Close the app and reopen it — your work is still there.\n\nWhat you get:\n- Write: document editor with formatting and auto-save\n- Calc: spreadsheet with SUM/AVG/MAX formulas\n- Calendar: month, week and day views with event management\n- Notes: pinned notes with full-text search\n- Matrix: smart table with filters and column types\n- Draw: freehand canvas\n- Present: slide editor\n- Mail: local email reader\n\nBuilt for WCAG AA accessibility. Keyboard navigable throughout. Dark theme.\n\nFree, open source.",
+    "keywords": "notes,calendar,spreadsheet,writer,draw,productivity,local,private,dokument",
+    "whats_new": "Version 2: new design system, WCAG AA accessibility, improved formula engine, redesigned calendar."
+  },
+  "google_play": {
+    "title": "Jarvis Office",
+    "short_description": "Write, calculate, plan and draw. No account, no cloud, works offline.",
+    "full_description": "Jarvis Office is a personal office suite that runs entirely in your browser.\n\nNo account. No cloud. No internet required.\n\nEverything is stored on your device. Close the app and reopen it — your work is still there.\n\n8 built-in tools:\n- Write: document editor\n- Calc: spreadsheet with formulas\n- Calendar: events and reminders\n- Notes: pinned, searchable notes\n- Matrix: smart table\n- Draw: freehand canvas\n- Present: slide editor\n- Mail: local email reader\n\nWCAG AA accessible. Keyboard navigable. Free and open source."
+  }
+}
