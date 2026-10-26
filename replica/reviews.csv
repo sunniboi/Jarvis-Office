@@ -1,0 +1,12 @@
+source,url,date,rating,text
+v1-bugfix,https://github.com/sunniboi/Jarvis-Office/commit/b0db289,2026-10-22,2,"App-Module starten nicht — alle 8 Apps werfen ReferenceError beim ersten Start. Launcher.js lädt vor den App-Dateien."
+v1-recon,https://github.com/sunniboi/Jarvis-Office/blob/main/replica/recon.md,2026-10-22,3,"Draw: Toolbox vorhanden, aber Pen-Tool zeichnet nicht korrekt. Shapes (Rect/Circle/Line/Arrow) fehlen komplett."
+v1-recon,https://github.com/sunniboi/Jarvis-Office/blob/main/replica/recon.md,2026-10-22,3,"Present: Elemente auf der Folie können nicht verschoben werden (kein Drag). Kein Properties-Panel."
+v1-recon,https://github.com/sunniboi/Jarvis-Office/blob/main/replica/recon.md,2026-10-22,3,"Calc: Nur 50 Zeilen statt 100. Keine Zellenformatierung (Bold/Italic), kein AutoSumme-Button."
+v1-recon,https://github.com/sunniboi/Jarvis-Office/blob/main/replica/recon.md,2026-10-22,2,"Write: Listen (ul/ol) fehlen. Strikethough fehlt. Suchen & Ersetzen fehlt. Tabellen fehlen."
+v1-recon,https://github.com/sunniboi/Jarvis-Office/blob/main/replica/recon.md,2026-10-22,3,"Matrix: 12 Spaltentypen dokumentiert, aber nur Basis-Typen implementiert. Filter pro Spalte fehlt."
+v1-recon,https://github.com/sunniboi/Jarvis-Office/blob/main/replica/recon.md,2026-10-22,4,"Calendar: CRUD funktioniert, aber Mini-Sidebar fehlt. Listenansicht fehlt. ICS Export fehlt."
+v1-a11y,https://github.com/sunniboi/Jarvis-Office/commit/637e538,2026-10-26,2,"8 WCAG AA Verstöße: Farbkontrast zu gering, Icon-Buttons ohne Text, falsche ARIA-Rollen, verschachtelte Landmarks."
+v1-a11y,https://github.com/sunniboi/Jarvis-Office/commit/637e538,2026-10-26,2,"Launcher-Karten als listitem ohne list-Container — Screen Reader navigiert falsch."
+v1-recon,https://github.com/sunniboi/Jarvis-Office/blob/main/replica/recon.md,2026-10-22,3,"Mail: Reply/Reply-All/Forward fehlt. Papierkorb leeren fehlt. Alle als gelesen fehlt."
+v1-recon,https://github.com/sunniboi/Jarvis-Office/blob/main/replica/recon.md,2026-10-22,4,"Notes: Gut nutzbar. Pin funktioniert. Suche funktioniert. Kontextmenü und Export fehlen noch."
