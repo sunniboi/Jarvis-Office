@@ -31,8 +31,7 @@ function buildLauncher() {
   for (const [key, app] of Object.entries(APPS)) {
     const card = document.createElement('button');
     card.className = 'app-card';
-    card.setAttribute('role', 'listitem');
-    card.setAttribute('aria-label', app.name + ' öffnen');
+    card.setAttribute('role', 'button');
     card.dataset.app = key;
     card.innerHTML = `
       <div class="app-icon" style="background:${app.color}22">

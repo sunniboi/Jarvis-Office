@@ -11,7 +11,7 @@
 </head>
 <body>
   <div id="app">
-    <div id="launcher" class="launcher" role="main">
+    <div id="launcher" class="launcher">
       <header class="launcher-header">
         <div class="logo">
           <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
@@ -19,7 +19,7 @@
             <path d="M10 20 L20 10 L30 20 L20 30 Z" fill="rgba(255,255,255,0.25)"/>
             <circle cx="20" cy="20" r="5" fill="#fff"/>
           </svg>
-          <span>Jarvis Office</span>
+          <h1 class="logo-title">Jarvis Office</h1>
         </div>
         <div class="launcher-right">
           <time id="clock" aria-live="polite"></time>
@@ -29,7 +29,7 @@
         </div>
       </header>
 
-      <main class="launcher-grid" id="launcher-grid" role="list" aria-label="Anwendungen">
+      <main class="launcher-grid" id="launcher-grid" aria-label="Anwendungen">
       </main>
 
       <footer class="launcher-footer">
@@ -37,7 +37,7 @@
       </footer>
     </div>
 
-    <div id="app-container" class="app-container hidden" role="region" aria-label="Aktive Anwendung"></div>
+    <div id="app-container" class="app-container hidden"></div>
   </div>
 
   <script src="js/utils.js"></script>

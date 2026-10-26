@@ -22,9 +22,9 @@ function initCalendar(container) {
       </div>
       <div class="toolbar">
         <div class="toolbar-group">
-          <button class="btn btn-ghost btn-sm" id="cal-prev">${icon('chevronLeft', 15)}</button>
+          <button class="btn btn-ghost btn-sm" id="cal-prev" aria-label="Zurück">${icon('chevronLeft', 15)}</button>
           <button class="btn btn-ghost btn-sm" id="cal-today">Heute</button>
-          <button class="btn btn-ghost btn-sm" id="cal-next">${icon('chevronRight', 15)}</button>
+          <button class="btn btn-ghost btn-sm" id="cal-next" aria-label="Weiter">${icon('chevronRight', 15)}</button>
         </div>
         <div class="toolbar-sep"></div>
         <div class="toolbar-group" role="radiogroup" aria-label="Ansicht">
@@ -34,7 +34,7 @@ function initCalendar(container) {
         </div>
       </div>
       <div class="cal-title-bar" id="cal-title-bar"></div>
-      <div class="cal-body" id="cal-body" role="grid" aria-label="Kalender"></div>
+      <div class="cal-body" id="cal-body" aria-label="Kalender"></div>
       <div class="statusbar">
         <span id="cal-event-count">0 Termine</span>
       </div>
@@ -70,7 +70,7 @@ function initCalendar(container) {
       const ds   = isoDate(date);
       const ev   = eventsOnDay(ds);
       const todayCls = isToday(date) ? ' today' : '';
-      html += `<div class="cal-day${todayCls}" data-date="${ds}" tabindex="0" role="gridcell" aria-label="${d}. ${MONTHS[m]}">
+      html += `<div class="cal-day${todayCls}" data-date="${ds}" tabindex="0" role="button" aria-label="${d}. ${MONTHS[m]}">
         <span class="cal-day-num">${d}</span>
         <div class="cal-events-mini">
           ${ev.slice(0, 3).map(e => `<div class="ev-dot" style="background:${e.color||'var(--accent)'}" title="${sanitize(e.title)}">${sanitize(e.title)}</div>`).join('')}
@@ -98,7 +98,7 @@ function initCalendar(container) {
       const ds = isoDate(d);
       const ev = eventsOnDay(ds);
       const todayCls = isToday(d) ? ' today' : '';
-      html += `<div class="cal-week-col${todayCls}" data-date="${ds}" tabindex="0" role="gridcell" aria-label="${DOW[i]} ${formatDate(d)}">
+      html += `<div class="cal-week-col${todayCls}" data-date="${ds}" tabindex="0" role="button" aria-label="${DOW[i]} ${formatDate(d)}">
         <div class="cal-week-hdr">${DOW[i]}<br><strong>${d.getDate()}</strong></div>
         <div class="cal-week-events">
           ${ev.map(e => `<div class="ev-block" data-id="${e.id}" style="background:${e.color||'var(--accent)'}22;border-left:3px solid ${e.color||'var(--accent)'}">

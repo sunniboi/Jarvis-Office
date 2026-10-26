@@ -11,6 +11,7 @@ function initWrite(container) {
   // ── DOM ──────────────────────────────────────────────────────────────────
   container.innerHTML = `
     <div class="app-chrome write-app">
+      <h1 class="sr-only">Jarvis Write</h1>
       <div class="titlebar">
         <button class="btn-icon back-btn" aria-label="Zurück zum Launcher">${icon('arrowLeft', 18)}</button>
         <span class="app-title" id="write-title">Unbenannt</span>
@@ -60,7 +61,7 @@ function initWrite(container) {
         </div>
       </div>
 
-      <div class="write-scroll">
+      <main class="write-scroll">
         <div class="write-page"
              id="write-editor"
              contenteditable="true"
@@ -69,7 +70,7 @@ function initWrite(container) {
              aria-multiline="true"
              aria-label="Dokument-Editor"
              style="font-size:${fontSize}px"></div>
-      </div>
+      </main>
 
       <div class="statusbar">
         <span id="write-wordcount">0 Wörter</span>
@@ -91,7 +92,8 @@ function initWrite(container) {
 
   function markClean() {
     dirty = false;
-    dirtyEl.textContent = '';
+    dirtyEl.textContent = 'Gespeichert';
+    setTimeout(() => { if (!dirty) dirtyEl.textContent = ''; }, 3000);
   }
 
   function getTitle() {
@@ -217,13 +219,16 @@ function initWrite(container) {
 
   // ── Document events ───────────────────────────────────────────────────────
   editor.addEventListener('input', () => { markDirty(); countWords(); });
-  editor.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); }
-  });
+  const _docKeydown = e => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) { e.preventDefault(); saveDoc(); }
+  };
+  document.addEventListener('keydown', _docKeydown);
+  editor.addEventListener('keydown', _docKeydown);
 
   container.querySelector('.back-btn').addEventListener('click', () => {
     if (dirty && !confirm('Ungespeicherte Änderungen verwerfen?')) return;
     clearInterval(autoSaveTimer);
+    document.removeEventListener('keydown', _docKeydown);
     goHome();
   });
 
