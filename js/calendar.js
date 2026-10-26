@@ -187,7 +187,7 @@ function initCalendar(container) {
       <div class="form-group"><label>Beschreibung</label><textarea id="ev-desc" rows="3">${sanitize(ex?.desc || '')}</textarea></div>
       <div class="form-group">
         <label>Farbe</label>
-        <input type="color" id="ev-color" value="${ex?.color || '#7c3aed'}" />
+        <input type="color" id="ev-color" value="${ex?.color || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7c3aed'}" />
       </div>
       <div class="modal-actions">
         <button class="btn btn-ghost btn-cancel">Abbrechen</button>

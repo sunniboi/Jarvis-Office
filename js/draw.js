@@ -2,7 +2,7 @@
 
 function initDraw(container) {
   let tool = 'select';
-  let color = '#7c3aed';
+  let color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7c3aed';
   let strokeWidth = 2;
   let shapes = [];    // { id, type, x, y, w, h, text, fill, stroke, sw, rx }
   let selected = null;

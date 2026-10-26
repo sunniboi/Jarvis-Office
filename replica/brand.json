@@ -1,0 +1,25 @@
+{
+  "name": "Jarvis Office",
+  "version": "2.0",
+  "avoid": [],
+  "domains": [],
+  "colors": [],
+  "palette": {
+    "--bg":           "#0d0d1a",
+    "--bg-elevated":  "#161628",
+    "--surface":      "#1c1c36",
+    "--surface-hi":   "#242448",
+    "--border":       "#2a2a50",
+    "--text":         "#e2e8f0",
+    "--text-muted":   "#8b9cb5",
+    "--text-faint":   "#8499b0",
+    "--accent":       "#7c3aed",
+    "--accent-hi":    "#a870f7",
+    "--on-accent":    "#ffffff",
+    "--success":      "#22c55e",
+    "--warn":         "#f59e0b",
+    "--danger":       "#ef4444"
+  },
+  "angle": "offline-first",
+  "tagline": "Your personal office suite. No account. No cloud. Works offline."
+}
