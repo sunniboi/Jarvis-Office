@@ -1,0 +1,121 @@
+-- Jarvis Office v2 — localStorage-Schema (Pseudo-SQL als Typdokumentation)
+-- Kein echtes SQL. Jeder Block beschreibt eine localStorage-Entität.
+-- Zugriff NUR über js/storage.js — nie direkt über localStorage.* im App-Code.
+-- Serialisierung: JSON.stringify / JSON.parse
+
+-- KEY: 'jarvis_settings'  (object)
+-- settings {
+--   name        TEXT    -- Benutzername, Default: ''
+--   fontSize    INTEGER -- Basis-Schriftgröße in px, Default: 16
+-- }
+
+-- KEY: 'jarvis_write_docs'  (object, keyed by id)
+-- write_docs {
+--   [id: TEXT] {
+--     id        TEXT      -- UUID v4
+--     name      TEXT      -- Dateiname, Default: 'Unbenannt.jdoc'
+--     html      TEXT      -- innerHTML des contenteditable
+--     modified  TIMESTAMP -- ISO 8601
+--   }
+-- }
+
+-- KEY: 'jarvis_calc_docs'  (object, keyed by id)
+-- calc_docs {
+--   [id: TEXT] {
+--     id        TEXT
+--     name      TEXT
+--     cells {
+--       [ref: TEXT] {        -- z.B. 'A1'
+--         raw     TEXT       -- Eingabe des Nutzers ('=SUM(A1:A3)' oder '42')
+--         value   TEXT|NULL  -- ausgewerteter Wert oder Fehler-String
+--         style {
+--           bold        BOOLEAN
+--           italic      BOOLEAN
+--           underline   BOOLEAN
+--           align       TEXT   -- 'left'|'center'|'right'
+--           color       TEXT   -- CSS-Farbwert
+--           background  TEXT
+--         }
+--       }
+--     }
+--     modified  TIMESTAMP
+--   }
+-- }
+
+-- KEY: 'jarvis_matrix_docs'  (object, keyed by id)
+-- matrix_docs {
+--   [id: TEXT] {
+--     id       TEXT
+--     name     TEXT
+--     columns  ARRAY -- [{ id, name, type, width }]
+--     rows     ARRAY -- [{ id, [colId]: value }]
+--     filters  OBJECT -- { [colId]: filterValue }
+--     condFmt  ARRAY  -- [{ colId, rule, color }]
+--     modified TIMESTAMP
+--   }
+-- }
+
+-- KEY: 'jarvis_draw_docs'  (object, keyed by id)
+-- draw_docs {
+--   [id: TEXT] {
+--     id       TEXT
+--     name     TEXT
+--     elements ARRAY -- [{ id, type, x, y, w, h, style, points? }]
+--     modified TIMESTAMP
+--   }
+-- }
+-- ACHTUNG: Große Dokumente können localStorage-Limit (≈5 MB) erreichen.
+-- Storage-Modul muss Quota vor dem Speichern prüfen.
+
+-- KEY: 'jarvis_present_docs'  (object, keyed by id)
+-- present_docs {
+--   [id: TEXT] {
+--     id     TEXT
+--     name   TEXT
+--     slides ARRAY -- [{
+--       id       TEXT
+--       layout   TEXT   -- 'blank'|'title'|'content'|...
+--       theme    TEXT   -- 'default'|'dark'|'light'|'ocean'|'forest'
+--       elements ARRAY  -- [{ id, type, x, y, w, h, content, style }]
+--     }]
+--     modified TIMESTAMP
+--   }
+-- }
+
+-- KEY: 'jarvis_mails'  (object)
+-- mails {
+--   inbox  ARRAY -- [{ id, from, to, subject, body, date, read, starred }]
+--   sent   ARRAY
+--   drafts ARRAY
+--   starred ARRAY  -- IDs (Referenzen auf inbox/sent)
+--   trash  ARRAY
+-- }
+
+-- KEY: 'jarvis_notes'  (array)
+-- notes [
+--   {
+--     id       TEXT
+--     title    TEXT
+--     body     TEXT
+--     pinned   BOOLEAN
+--     created  TIMESTAMP
+--     modified TIMESTAMP
+--   }
+-- ]
+
+-- KEY: 'jarvis_events'  (array)
+-- events [
+--   {
+--     id       TEXT
+--     title    TEXT
+--     date     TEXT      -- 'YYYY-MM-DD'
+--     time     TEXT      -- 'HH:MM' oder ''
+--     duration INTEGER   -- Minuten
+--     color    TEXT      -- CSS-Farbwert
+--     location TEXT
+--     desc     TEXT
+--     repeat   TEXT      -- 'none'|'daily'|'weekly'|'monthly'|'yearly'
+--   }
+-- ]
+-- HINWEIS: Zeitzone des Browsers bestimmt die Darstellung. Keine UTC-
+-- Konvertierung nötig, da single-user und keine Sync.
