@@ -68,7 +68,7 @@ function initAI(container) {
       <button class="btn-back" onclick="goHome()" aria-label="Zurück">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
       </button>
-      <span class="app-title">Jarvis AI</span>
+      <span class="app-title">Office AI</span>
       <button id="ai-settings-btn" class="btn-icon" title="API-Einstellungen" aria-label="API-Einstellungen">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><circle cx="10" cy="10" r="3"/><path d="M10 2v1.5M10 16.5V18M2 10h1.5M16.5 10H18M4.22 4.22l1.06 1.06M14.72 14.72l1.06 1.06M4.22 15.78l1.06-1.06M14.72 5.28l1.06-1.06"/></svg>
       </button>
@@ -117,7 +117,7 @@ function initAI(container) {
       <div id="ai-messages" class="ai-messages" aria-live="polite" aria-label="Chatverlauf">
         <div class="ai-welcome">
           <svg viewBox="0 0 24 24" fill="none" stroke="var(--app-ai)" stroke-width="1.5" width="48" height="48"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/><circle cx="12" cy="12" r="3" fill="var(--app-ai)" opacity=".3"/></svg>
-          <p>Jarvis AI ist bereit.<br><small>API-Key über das Zahnrad-Icon eintragen.</small></p>
+          <p>Office AI ist bereit.<br><small>API-Key über das Zahnrad-Icon eintragen.</small></p>
         </div>
       </div>
 

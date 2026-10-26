@@ -9,7 +9,7 @@ const APPS = {
   mail:     { name: 'Jarvis Mail',     desc: 'E-Mail-Client',        color: 'var(--app-mail)',     init: (c) => initMail(c) },
   notes:    { name: 'Jarvis Notes',    desc: 'Schnellnotizen',       color: 'var(--app-notes)',    init: (c) => initNotes(c) },
   calendar: { name: 'Jarvis Calendar', desc: 'Kalender & Termine',   color: 'var(--app-calendar)', init: (c) => initCalendar(c) },
-  ai:       { name: 'Jarvis AI',       desc: 'KI-Chat (Groq/Gemini)',color: 'var(--app-ai)',       init: (c) => initAI(c) },
+  ai:       { name: 'Office AI',        desc: 'KI-Chat (Groq/Gemini)',color: 'var(--app-ai)',       init: (c) => initAI(c) },
 };
 
 // App icons as SVG paths (color inherits from parent)
