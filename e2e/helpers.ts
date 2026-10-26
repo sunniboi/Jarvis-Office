@@ -22,5 +22,5 @@ export async function launchApp(page: Page, appLabel: RegExp | string) {
 }
 
 export async function goBack(page: Page) {
-  await page.getByRole('button', { name: /zurück/i }).click();
+  await page.locator('.back-btn').click();
 }

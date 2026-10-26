@@ -22,9 +22,9 @@ function initCalendar(container) {
       </div>
       <div class="toolbar">
         <div class="toolbar-group">
-          <button class="btn btn-ghost btn-sm" id="cal-prev" aria-label="Zurück">${icon('chevronLeft', 15)}</button>
+          <button class="btn btn-ghost btn-sm" id="cal-prev" aria-label="Vorheriger Monat">${icon('chevronLeft', 15)}</button>
           <button class="btn btn-ghost btn-sm" id="cal-today">Heute</button>
-          <button class="btn btn-ghost btn-sm" id="cal-next" aria-label="Weiter">${icon('chevronRight', 15)}</button>
+          <button class="btn btn-ghost btn-sm" id="cal-next" aria-label="Nächster Monat">${icon('chevronRight', 15)}</button>
         </div>
         <div class="toolbar-sep"></div>
         <div class="toolbar-group" role="radiogroup" aria-label="Ansicht">
