@@ -24,9 +24,10 @@ function initWrite(container) {
 
       <div class="toolbar" role="toolbar" aria-label="Formatierung">
         <div class="toolbar-group">
-          <button class="tb-btn" data-cmd="bold"      title="Fett (Strg+B)">${icon('bold', 16)}</button>
-          <button class="tb-btn" data-cmd="italic"    title="Kursiv (Strg+I)">${icon('italic', 16)}</button>
-          <button class="tb-btn" data-cmd="underline" title="Unterstrichen (Strg+U)">${icon('underline', 16)}</button>
+          <button class="tb-btn" data-cmd="bold"          title="Fett (Strg+B)">${icon('bold', 16)}</button>
+          <button class="tb-btn" data-cmd="italic"        title="Kursiv (Strg+I)">${icon('italic', 16)}</button>
+          <button class="tb-btn" data-cmd="underline"     title="Unterstrichen (Strg+U)">${icon('underline', 16)}</button>
+          <button class="tb-btn" data-cmd="strikeThrough" title="Durchgestrichen">S̶</button>
         </div>
         <div class="toolbar-sep"></div>
         <div class="toolbar-group">
@@ -41,7 +42,10 @@ function initWrite(container) {
             <option value="H1">Überschrift 1</option>
             <option value="H2">Überschrift 2</option>
             <option value="H3">Überschrift 3</option>
+            <option value="H4">Überschrift 4</option>
           </select>
+          <button class="tb-btn" data-cmd="insertUnorderedList" title="Aufzählungsliste">• ―</button>
+          <button class="tb-btn" data-cmd="insertOrderedList"   title="Nummerierte Liste">1. ―</button>
           <select id="write-fontsize" aria-label="Schriftgröße" class="tb-select">
             ${[10,11,12,13,14,16,18,20,24,28,36,48].map(s =>
               `<option value="${s}"${s===fontSize?' selected':''}>${s}</option>`

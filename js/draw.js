@@ -4,10 +4,11 @@ function initDraw(container) {
   let tool = 'select';
   let color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7c3aed';
   let strokeWidth = 2;
-  let shapes = [];    // { id, type, x, y, w, h, text, fill, stroke, sw, rx }
+  let shapes = [];    // { id, type, x, y, w, h, text, fill, stroke, sw, rx, pts }
   let selected = null;
   let dragging = null; // { shape, ox, oy }
   let drawing  = null; // in-progress shape
+  let penPath  = null; // SVGPathElement for live pen stroke
   let docId = null;
   let isDirty = false;
 
@@ -26,6 +27,7 @@ function initDraw(container) {
       <div class="toolbar">
         <div class="toolbar-group" role="radiogroup" aria-label="Werkzeug">
           <button class="tb-btn tool-btn active" data-tool="select"  title="Auswählen">${icon('eye', 16)}</button>
+          <button class="tb-btn tool-btn"         data-tool="pen"    title="Freihand">✏</button>
           <button class="tb-btn tool-btn"         data-tool="rect"   title="Rechteck">▭</button>
           <button class="tb-btn tool-btn"         data-tool="ellipse"title="Ellipse">◯</button>
           <button class="tb-btn tool-btn"         data-tool="line"   title="Linie">╱</button>
@@ -86,6 +88,11 @@ function initDraw(container) {
     } else if (s.type === 'line') {
       el = svgEl('line', { x1: s.x, y1: s.y, x2: s.x + s.w, y2: s.y + s.h,
         stroke: s.stroke, 'stroke-width': s.sw, 'stroke-linecap': 'round' });
+    } else if (s.type === 'pen') {
+      if (!s.pts || s.pts.length < 2) return null;
+      const d = 'M' + s.pts.map(([x, y]) => `${x},${y}`).join(' L');
+      el = svgEl('path', { d, fill: 'none', stroke: s.stroke, 'stroke-width': s.sw,
+        'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
     } else if (s.type === 'text') {
       el = svgEl('text', { x: s.x, y: s.y, fill: s.stroke, 'font-size': 16,
         'font-family': 'var(--font-sans)' });
@@ -129,12 +136,23 @@ function initDraw(container) {
       if (target) {
         selected = target.dataset.id;
         const s = shapes.find(sh => sh.id === selected);
-        dragging = { shape: s, ox: e.clientX - s.x, oy: e.clientY - s.y };
+        const baseX = s.type === 'pen' ? (s.pts[0]?.[0] ?? 0) : s.x;
+        const baseY = s.type === 'pen' ? (s.pts[0]?.[1] ?? 0) : s.y;
+        dragging = { shape: s, ox: e.clientX - baseX, oy: e.clientY - baseY };
         delBtn.disabled = false;
         renderAll();
       } else {
         selected = null; delBtn.disabled = true; renderAll();
       }
+      return;
+    }
+    if (tool === 'pen') {
+      const { x, y } = svgCoords(e);
+      drawing = { id: JarvisDB.genId(), type: 'pen', x: 0, y: 0, w: 0, h: 0, pts: [[x, y]], stroke: color, sw: strokeWidth };
+      penPath = svgEl('path', { d: `M${x},${y}`, fill: 'none', stroke: color, 'stroke-width': strokeWidth,
+        'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+      svg.appendChild(penPath);
+      svg.setPointerCapture(e.pointerId);
       return;
     }
     if (tool === 'text') {
@@ -161,9 +179,22 @@ function initDraw(container) {
 
   svg.addEventListener('pointermove', e => {
     if (dragging) {
-      dragging.shape.x = e.clientX - dragging.ox;
-      dragging.shape.y = e.clientY - dragging.oy;
+      const s = dragging.shape;
+      if (s.type === 'pen') {
+        const dx = e.clientX - dragging.ox - (s.pts[0]?.[0] ?? 0);
+        const dy = e.clientY - dragging.oy - (s.pts[0]?.[1] ?? 0);
+        s.pts = s.pts.map(([px, py]) => [px + dx, py + dy]);
+        dragging.ox = e.clientX - s.pts[0][0];
+        dragging.oy = e.clientY - s.pts[0][1];
+      } else {
+        s.x = e.clientX - dragging.ox;
+        s.y = e.clientY - dragging.oy;
+      }
       markDirty(); renderAll();
+    } else if (drawing && drawing.type === 'pen' && penPath) {
+      const { x, y } = svgCoords(e);
+      drawing.pts.push([x, y]);
+      penPath.setAttribute('d', 'M' + drawing.pts.map(([px, py]) => `${px},${py}`).join(' L'));
     } else if (drawing) {
       const { x, y } = svgCoords(e);
       drawing.w = x - drawing.x;
@@ -183,10 +214,18 @@ function initDraw(container) {
   svg.addEventListener('pointerup', () => {
     dragging = null;
     if (drawing) {
-      svg.querySelector('#draw-preview')?.remove();
-      if (Math.abs(drawing.w) > 3 || Math.abs(drawing.h) > 3) {
-        shapes.push({ ...drawing });
-        markDirty(); renderAll();
+      if (drawing.type === 'pen') {
+        penPath?.remove(); penPath = null;
+        if (drawing.pts.length > 2) {
+          shapes.push({ ...drawing });
+          markDirty(); renderAll();
+        }
+      } else {
+        svg.querySelector('#draw-preview')?.remove();
+        if (Math.abs(drawing.w) > 3 || Math.abs(drawing.h) > 3) {
+          shapes.push({ ...drawing });
+          markDirty(); renderAll();
+        }
       }
       drawing = null;
     }

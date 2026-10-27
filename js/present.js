@@ -1,11 +1,16 @@
 /* ===== JARVIS OFFICE v2 — PRESENT ===== */
 
 function initPresent(container) {
-  let slides = [{ id: JarvisDB.genId(), title: 'Folie 1', content: '', bg: '#1e1b4b', color: '#ffffff', layout: 'center' }];
+  function defaultSlide(n) {
+    return { id: JarvisDB.genId(), title: `Folie ${n}`, content: '', bg: '#1e1b4b', color: '#ffffff', layout: 'center', elements: [] };
+  }
+  let slides = [defaultSlide(1)];
   let current = 0;
   let docId = null;
   let isDirty = false;
   let presenting = false;
+  let selEl = null;   // selected element id on current slide
+  let dragState = null; // { elId, ox, oy }
 
   const LAYOUTS = ['center', 'left', 'split'];
 
@@ -39,6 +44,13 @@ function initPresent(container) {
             <option value="left">Links</option>
             <option value="split">Geteilt</option>
           </select>
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <button class="btn btn-ghost btn-sm" id="pres-add-text">${icon('type', 15)} Text</button>
+          <button class="btn btn-ghost btn-sm" id="pres-add-rect">▭ Rechteck</button>
+          <button class="btn btn-ghost btn-sm" id="pres-add-circle">◯ Kreis</button>
+          <button class="btn btn-ghost btn-sm" id="pres-del-el" disabled>${icon('trash', 15)} Element</button>
         </div>
         <div class="toolbar-sep"></div>
         <div class="toolbar-group">
@@ -121,14 +133,71 @@ function initPresent(container) {
     preview.style.background = s.bg;
     preview.style.color = s.color;
     preview.style.textAlign = s.layout === 'left' ? 'left' : 'center';
-    preview.innerHTML = `<h2 class="slide-prev-title">${sanitize(s.title)}</h2>
+    preview.style.position = 'relative';
+    preview.style.overflow = 'hidden';
+
+    // base text layer
+    let html = `<h2 class="slide-prev-title">${sanitize(s.title)}</h2>
       <p class="slide-prev-content">${sanitize(s.content).replace(/\n/g, '<br>')}</p>`;
+
+    // draggable elements layer
+    (s.elements || []).forEach(el => {
+      const sel = el.id === selEl ? ' pres-el-selected' : '';
+      if (el.type === 'text') {
+        html += `<div class="pres-el${sel}" data-elid="${sanitize(el.id)}" style="left:${el.x}%;top:${el.y}%;color:${sanitize(el.color||s.color)};font-size:${el.fs||18}px;position:absolute;cursor:move;user-select:none;padding:4px 8px;border-radius:4px">${sanitize(el.text||'')}</div>`;
+      } else if (el.type === 'rect') {
+        html += `<div class="pres-el${sel}" data-elid="${sanitize(el.id)}" style="left:${el.x}%;top:${el.y}%;width:${el.w||120}px;height:${el.h||60}px;background:${sanitize(el.fill||'rgba(255,255,255,.15)')};border:2px solid ${sanitize(el.stroke||s.color)};position:absolute;cursor:move;border-radius:4px"></div>`;
+      } else if (el.type === 'circle') {
+        html += `<div class="pres-el${sel}" data-elid="${sanitize(el.id)}" style="left:${el.x}%;top:${el.y}%;width:${el.w||80}px;height:${el.w||80}px;background:${sanitize(el.fill||'rgba(255,255,255,.15)')};border:2px solid ${sanitize(el.stroke||s.color)};position:absolute;cursor:move;border-radius:50%"></div>`;
+      }
+    });
+
+    preview.innerHTML = html;
+    bindPreviewDrag();
+
     counterEl.textContent = `Folie ${current + 1} / ${slides.length}`;
     bgIn.value = s.bg;
     fcIn.value = s.color;
     layoutSel.value = s.layout || 'center';
     titleInEl.value  = s.title;
     contentInEl.value = s.content;
+
+    const delElBtn = container.querySelector('#pres-del-el');
+    if (delElBtn) delElBtn.disabled = !selEl;
+  }
+
+  function bindPreviewDrag() {
+    preview.querySelectorAll('.pres-el').forEach(div => {
+      div.addEventListener('pointerdown', e => {
+        e.stopPropagation();
+        selEl = div.dataset.elid;
+        const s = slides[current];
+        const el = (s.elements || []).find(el => el.id === selEl);
+        if (!el) return;
+        const rect = preview.getBoundingClientRect();
+        dragState = {
+          elId: selEl,
+          startX: el.x, startY: el.y,
+          pxW: rect.width, pxH: rect.height,
+          mx0: e.clientX, my0: e.clientY
+        };
+        div.setPointerCapture(e.pointerId);
+        renderPreview();
+      });
+      div.addEventListener('pointermove', e => {
+        if (!dragState || dragState.elId !== div.dataset.elid) return;
+        const s = slides[current];
+        const el = (s.elements || []).find(el => el.id === dragState.elId);
+        if (!el) return;
+        el.x = Math.max(0, Math.min(90, dragState.startX + (e.clientX - dragState.mx0) / dragState.pxW * 100));
+        el.y = Math.max(0, Math.min(90, dragState.startY + (e.clientY - dragState.my0) / dragState.pxH * 100));
+        markDirty();
+        // live update position without full re-render
+        div.style.left = el.x + '%';
+        div.style.top  = el.y + '%';
+      });
+      div.addEventListener('pointerup', () => { dragState = null; });
+    });
   }
 
   function selectSlide(idx) {
@@ -180,10 +249,48 @@ function initPresent(container) {
     fsSlide.style.background = s.bg;
     fsSlide.style.color = s.color;
     fsSlide.style.textAlign = s.layout === 'left' ? 'left' : 'center';
-    fsSlide.innerHTML = `<h1 class="fs-title">${sanitize(s.title)}</h1>
+    fsSlide.style.position = 'relative';
+    let html = `<h1 class="fs-title">${sanitize(s.title)}</h1>
       <p class="fs-content">${sanitize(s.content).replace(/\n/g, '<br>')}</p>`;
+    (s.elements || []).forEach(el => {
+      if (el.type === 'text') {
+        html += `<div style="left:${el.x}%;top:${el.y}%;color:${sanitize(el.color||s.color)};font-size:${(el.fs||18)*1.5}px;position:absolute;padding:4px 8px">${sanitize(el.text||'')}</div>`;
+      } else if (el.type === 'rect') {
+        html += `<div style="left:${el.x}%;top:${el.y}%;width:${el.w||120}px;height:${el.h||60}px;background:${sanitize(el.fill||'rgba(255,255,255,.15)')};border:2px solid ${sanitize(el.stroke||s.color)};position:absolute;border-radius:4px"></div>`;
+      } else if (el.type === 'circle') {
+        html += `<div style="left:${el.x}%;top:${el.y}%;width:${el.w||80}px;height:${el.w||80}px;background:${sanitize(el.fill||'rgba(255,255,255,.15)')};border:2px solid ${sanitize(el.stroke||s.color)};position:absolute;border-radius:50%"></div>`;
+      }
+    });
+    fsSlide.innerHTML = html;
     fsCounter.textContent = `${idx + 1} / ${slides.length}`;
   }
+
+  // ── Element management ────────────────────────────────────────────────────
+  function addElement(type) {
+    const s = slides[current];
+    if (!s.elements) s.elements = [];
+    const newEl = { id: JarvisDB.genId(), type, x: 10, y: 10 };
+    if (type === 'text') {
+      const txt = prompt('Text eingeben:');
+      if (!txt) return;
+      newEl.text = txt; newEl.fs = 18; newEl.color = s.color;
+    } else {
+      newEl.fill = 'rgba(255,255,255,.15)'; newEl.stroke = s.color;
+      newEl.w = type === 'circle' ? 80 : 120; newEl.h = 60;
+    }
+    s.elements.push(newEl);
+    selEl = newEl.id;
+    markDirty(); renderPreview();
+  }
+
+  container.querySelector('#pres-add-text').addEventListener('click', () => addElement('text'));
+  container.querySelector('#pres-add-rect').addEventListener('click', () => addElement('rect'));
+  container.querySelector('#pres-add-circle').addEventListener('click', () => addElement('circle'));
+  container.querySelector('#pres-del-el').addEventListener('click', () => {
+    if (!selEl) return;
+    slides[current].elements = (slides[current].elements || []).filter(el => el.id !== selEl);
+    selEl = null; markDirty(); renderPreview();
+  });
 
   container.querySelector('#pres-start').addEventListener('click', () => {
     presenting = true;
@@ -232,8 +339,8 @@ function initPresent(container) {
 
   function newDoc() {
     if (isDirty && !confirm('Verwerfen?')) return;
-    docId = null;
-    slides = [{ id: JarvisDB.genId(), title: 'Folie 1', content: '', bg: '#1e1b4b', color: '#ffffff', layout: 'center' }];
+    docId = null; selEl = null;
+    slides = [defaultSlide(1)];
     titleEl.textContent = 'Präsentation1';
     markClean(); selectSlide(0);
   }

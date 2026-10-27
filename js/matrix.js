@@ -56,29 +56,39 @@ function initMatrix(container) {
   function markDirty() { isDirty = true; dirtyEl.textContent = '● Ungespeichert'; }
   function markClean() { isDirty = false; dirtyEl.textContent = ''; }
 
+  let colFilters = {}; // { colId: filterValue }
+
   // ── Render ────────────────────────────────────────────────────────────────
   function render(filter = '') {
     const q = filter.toLowerCase();
-    const visible = q ? rows.filter(r => Object.values(r.data).some(v => String(v).toLowerCase().includes(q))) : rows;
+    let visible = q ? rows.filter(r => Object.values(r.data).some(v => String(v).toLowerCase().includes(q))) : rows;
+
+    // apply per-column filters
+    Object.entries(colFilters).forEach(([cid, fv]) => {
+      if (!fv) return;
+      visible = visible.filter(r => String(r.data[cid] ?? '').toLowerCase().includes(fv.toLowerCase()));
+    });
 
     let html = '<thead><tr><th></th>';
     schema.forEach(col => {
       html += `<th data-col="${sanitize(col.id)}">${sanitize(col.label)} <button class="col-menu" data-col="${sanitize(col.id)}" title="Spalte bearbeiten">…</button></th>`;
     });
-    html += '<th></th></thead><tbody>';
+    html += '<th></th></tr><tr class="filter-row"><td></td>';
+    schema.forEach(col => {
+      const fv = colFilters[col.id] || '';
+      if (col.type === 'select') {
+        const opts = ['', ...(col.options || [])].map(o => `<option${o === fv ? ' selected' : ''}>${sanitize(o)}</option>`).join('');
+        html += `<td><select class="col-filter-sel" data-col="${sanitize(col.id)}" aria-label="Filter ${sanitize(col.label)}">${opts}</select></td>`;
+      } else {
+        html += `<td><input type="search" class="col-filter" data-col="${sanitize(col.id)}" value="${sanitize(fv)}" placeholder="Filter…" aria-label="Filter ${sanitize(col.label)}" /></td>`;
+      }
+    });
+    html += '<td></td></tr></thead><tbody>';
 
     visible.forEach(row => {
       html += `<tr data-rid="${sanitize(row.id)}"><td class="row-handle">${icon('chevronRight', 12)}</td>`;
       schema.forEach(col => {
-        const val = row.data[col.id] ?? '';
-        if (col.type === 'select') {
-          const opts = (col.options || []).map(o => `<option${o === val ? ' selected' : ''}>${sanitize(o)}</option>`).join('');
-          html += `<td><select class="cell-select" data-row="${sanitize(row.id)}" data-col="${sanitize(col.id)}">${opts}</select></td>`;
-        } else if (col.type === 'date') {
-          html += `<td><input type="date" class="cell-input" value="${sanitize(val)}" data-row="${sanitize(row.id)}" data-col="${sanitize(col.id)}" /></td>`;
-        } else {
-          html += `<td><input type="text" class="cell-input" value="${sanitize(val)}" data-row="${sanitize(row.id)}" data-col="${sanitize(col.id)}" /></td>`;
-        }
+        html += cellHTML(col, row.id, row.data[col.id]);
       });
       html += `<td><button class="btn-icon row-delete" data-rid="${sanitize(row.id)}" aria-label="Zeile löschen">${icon('trash', 13)}</button></td></tr>`;
     });
@@ -95,15 +105,38 @@ function initMatrix(container) {
         if (row) { row.data[e.target.dataset.col] = e.target.value; markDirty(); }
       });
     });
+    tableEl.querySelectorAll('.cell-check').forEach(el => {
+      el.addEventListener('change', e => {
+        const row = rows.find(r => r.id === e.target.dataset.row);
+        if (row) { row.data[e.target.dataset.col] = String(e.target.checked); markDirty(); }
+      });
+    });
+    tableEl.querySelectorAll('.star-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const row = rows.find(r => r.id === btn.dataset.row);
+        if (row) { row.data[btn.dataset.col] = btn.dataset.val; markDirty(); render(searchEl.value); }
+      });
+    });
     tableEl.querySelectorAll('.row-delete').forEach(btn => {
       btn.addEventListener('click', () => {
         rows = rows.filter(r => r.id !== btn.dataset.rid);
-        markDirty();
-        render(searchEl.value);
+        markDirty(); render(searchEl.value);
       });
     });
     tableEl.querySelectorAll('.col-menu').forEach(btn => {
       btn.addEventListener('click', () => editColumn(btn.dataset.col));
+    });
+    tableEl.querySelectorAll('.col-filter').forEach(inp => {
+      inp.addEventListener('input', e => {
+        colFilters[e.target.dataset.col] = e.target.value;
+        render(searchEl.value);
+      });
+    });
+    tableEl.querySelectorAll('.col-filter-sel').forEach(sel => {
+      sel.addEventListener('change', e => {
+        colFilters[e.target.dataset.col] = e.target.value;
+        render(searchEl.value);
+      });
     });
   }
 
@@ -115,18 +148,58 @@ function initMatrix(container) {
     render(searchEl.value);
   }
 
+  const COL_TYPES = [
+    { v: 'text',     l: 'Text'           },
+    { v: 'number',   l: 'Zahl'           },
+    { v: 'select',   l: 'Auswahl'        },
+    { v: 'date',     l: 'Datum'          },
+    { v: 'checkbox', l: 'Checkbox'       },
+    { v: 'url',      l: 'URL'            },
+    { v: 'email',    l: 'E-Mail'         },
+    { v: 'phone',    l: 'Telefon'        },
+    { v: 'currency', l: 'Währung'        },
+    { v: 'percent',  l: 'Prozent'        },
+    { v: 'rating',   l: 'Bewertung (1-5)'},
+    { v: 'textarea', l: 'Langer Text'    },
+  ];
+
+  function cellHTML(col, rowId, val) {
+    const v = val ?? '';
+    const dr = sanitize(rowId), dc = sanitize(col.id);
+    switch (col.type) {
+      case 'select': {
+        const opts = (col.options || []).map(o => `<option${o === v ? ' selected' : ''}>${sanitize(o)}</option>`).join('');
+        return `<td><select class="cell-select" data-row="${dr}" data-col="${dc}">${opts}</select></td>`;
+      }
+      case 'date':
+        return `<td><input type="date" class="cell-input" value="${sanitize(v)}" data-row="${dr}" data-col="${dc}" /></td>`;
+      case 'checkbox':
+        return `<td style="text-align:center"><input type="checkbox" class="cell-check" ${v === 'true' ? 'checked' : ''} data-row="${dr}" data-col="${dc}" /></td>`;
+      case 'number': case 'currency': case 'percent':
+        return `<td><input type="number" class="cell-input" value="${sanitize(v)}" data-row="${dr}" data-col="${dc}" style="width:80px" /></td>`;
+      case 'rating': {
+        const n = Math.max(0, Math.min(5, parseInt(v) || 0));
+        const stars = [1,2,3,4,5].map(i =>
+          `<button class="star-btn${i<=n?' star-on':''}" data-row="${dr}" data-col="${dc}" data-val="${i}" aria-label="${i} Stern">★</button>`
+        ).join('');
+        return `<td class="star-cell">${stars}</td>`;
+      }
+      case 'textarea':
+        return `<td><textarea class="cell-input" rows="1" data-row="${dr}" data-col="${dc}">${sanitize(v)}</textarea></td>`;
+      default:
+        return `<td><input type="text" class="cell-input" value="${sanitize(v)}" data-row="${dr}" data-col="${dc}" /></td>`;
+    }
+  }
+
   // ── Add / Edit column ─────────────────────────────────────────────────────
   function addColumn() {
+    const typeOpts = COL_TYPES.map(t => `<option value="${t.v}">${t.l}</option>`).join('');
     showModal(`
       <h3>Spalte hinzufügen</h3>
       <div class="form-group"><label>Name</label><input type="text" id="col-name" value="Neue Spalte" /></div>
       <div class="form-group">
         <label>Typ</label>
-        <select id="col-type">
-          <option value="text">Text</option>
-          <option value="select">Auswahl</option>
-          <option value="date">Datum</option>
-        </select>
+        <select id="col-type">${typeOpts}</select>
       </div>
       <div class="form-group" id="col-opts-wrap" style="display:none">
         <label>Optionen (kommagetrennt)</label>
@@ -145,7 +218,6 @@ function initMatrix(container) {
       markDirty();
       render(searchEl.value);
     });
-    // show/hide options field
     setTimeout(() => {
       const typeEl = document.querySelector('#col-type');
       const wrap   = document.querySelector('#col-opts-wrap');

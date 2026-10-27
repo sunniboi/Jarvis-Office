@@ -1,7 +1,7 @@
 /* ===== JARVIS OFFICE v2 — CALC ===== */
 
 function initCalc(container) {
-  const ROWS = 50, COLS = 26;
+  const ROWS = 100, COLS = 26;
   let cells = {};        // { "A1": { raw, val, fmt } }
   let dirty = new Set(); // cells needing re-render
   let selected = { r: 0, c: 0 };
