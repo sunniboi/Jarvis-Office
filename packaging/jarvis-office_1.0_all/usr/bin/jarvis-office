@@ -30,6 +30,8 @@ elif command -v opera >/dev/null 2>&1; then
     opera "file://$INDEX" 2>/dev/null &
 elif command -v firefox >/dev/null 2>&1; then
     firefox "file://$INDEX" 2>/dev/null &
+elif [ -x "/opt/pw-browsers/chromium" ]; then
+    launch_chromium_app /opt/pw-browsers/chromium
 elif command -v xdg-open >/dev/null 2>&1; then
     xdg-open "file://$INDEX" 2>/dev/null &
 else
