@@ -386,7 +386,7 @@ function openChatSettings() {
     <h3>⚙ Chat API-Einstellungen</h3>
     <div class="form-group">
       <label>Provider</label>
-      <select id="cs-provider">
+      <select id="cs-provider" onchange="document.getElementById('cs-baseurl-group').style.display=this.value==='ollama'?'':'none'">
         <option value="groq" ${s.provider==='groq'?'selected':''}>Groq (kostenlos)</option>
         <option value="openai" ${s.provider==='openai'?'selected':''}>OpenAI (ChatGPT)</option>
         <option value="anthropic" ${s.provider==='anthropic'?'selected':''}>Anthropic (Claude)</option>
@@ -410,28 +410,24 @@ function openChatSettings() {
       <label>Ollama Base URL</label>
       <input type="text" id="cs-baseurl" value="${s.baseUrl||'http://localhost:11434'}" />
     </div>
-    <p style="font-size:11px;color:var(--text3);margin-top:8px;">Der API-Key wird nur lokal im Browser gespeichert (localStorage).</p>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px;">Key wird lokal gespeichert – bleibt dauerhaft.</p>
     <div class="modal-actions">
       <button class="btn btn-ghost btn-cancel">Abbrechen</button>
-      <button class="btn btn-primary btn-ok">Speichern</button>
+      <button class="btn btn-primary" onclick="saveChatSettings()">Speichern</button>
     </div>
-  `, () => {
-    const provider = document.getElementById('cs-provider').value;
-    const key = document.getElementById('cs-key').value.trim();
-    const sel = document.getElementById('cs-model-select');
-    const model = (sel && sel.style.display !== 'none' ? sel.value : document.getElementById('cs-model').value).trim();
-    const baseUrl = document.getElementById('cs-baseurl')?.value.trim();
-    JarvisDB.set('chat_api', { provider, key, model, baseUrl });
-    showNotify('API-Einstellungen gespeichert.', 'success');
-  });
+  `);
+}
 
-  setTimeout(() => {
-    const provSel = document.getElementById('cs-provider');
-    if (provSel) provSel.addEventListener('change', () => {
-      const g = document.getElementById('cs-baseurl-group');
-      if (g) g.style.display = provSel.value === 'ollama' ? '' : 'none';
-    });
-  }, 50);
+function saveChatSettings() {
+  const provider = document.getElementById('cs-provider')?.value;
+  const key = document.getElementById('cs-key')?.value.trim();
+  const sel = document.getElementById('cs-model-select');
+  const model = (sel && sel.style.display !== 'none' ? sel.value : document.getElementById('cs-model')?.value || '').trim();
+  const baseUrl = document.getElementById('cs-baseurl')?.value?.trim() || '';
+  if (!provider || !key) { showNotify('Provider und Key sind Pflicht.', 'error'); return; }
+  JarvisDB.set('chat_api', { provider, key, model, baseUrl });
+  document.querySelector('.modal-overlay')?.remove();
+  showNotify('Gespeichert ✓', 'success');
 }
 
 async function loadGroqModels() {
