@@ -29,7 +29,7 @@ nano config.json
 ```json
 {
   "port": 3000,
-  "wolMac": "AA:BB:CC:DD:EE:FF",
+  "wolMac": "f0:de:f1:56:ab:82",
   "wolBroadcast": "255.255.255.255",
   "secret": "mein-geheimes-passwort"
 }
