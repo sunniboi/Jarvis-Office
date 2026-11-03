@@ -161,6 +161,14 @@ async function sendChatMessage() {
   }
 }
 
+const GROQ_FALLBACK_MODELS = [
+  'openai/gpt-oss-20b',
+  'openai/gpt-oss-120b',
+  'llama-3.1-8b-instant',
+  'llama-3.3-70b-versatile',
+  'meta-models/muse-spark-open',
+];
+
 async function callChatAPI(cfg, systemPrompt, history) {
   const messages = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
@@ -172,6 +180,31 @@ async function callChatAPI(cfg, systemPrompt, history) {
       : cfg.provider === 'groq'
       ? 'https://api.groq.com/openai/v1/chat/completions'
       : 'https://api.openai.com/v1/chat/completions';
+
+    if (cfg.provider === 'groq' && cfg.model) {
+      const modelsToTry = [cfg.model, ...GROQ_FALLBACK_MODELS.filter(m => m !== cfg.model)];
+      for (const model of modelsToTry) {
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.key}` },
+            body: JSON.stringify({ model, messages, max_tokens: 2048, temperature: 0.7 }),
+          });
+          if (res.status === 404 || res.status === 400) continue;
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+          const data = await res.json();
+          if (model !== cfg.model) {
+            cfg.model = model;
+            JarvisDB.set('chat_api', cfg);
+            showNotify(`Modell gewechselt zu: ${model}`, 'success');
+          }
+          return data.choices?.[0]?.message?.content || '(Keine Antwort)';
+        } catch(e) {
+          if (!e.message.includes('404') && !e.message.includes('400')) throw e;
+        }
+      }
+      throw new Error('Kein verfügbares Modell gefunden. Bitte auf console.groq.com prüfen.');
+    }
 
     const res = await fetch(url, {
       method: 'POST',
