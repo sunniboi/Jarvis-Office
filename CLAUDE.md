@@ -216,3 +216,13 @@ Folgende Skills werden **sofort** aufgerufen, sobald die entsprechenden Schlüss
 - Rechtschreibfehler des Users stillschweigend korrigieren, nicht kommentieren
 - Keine Wiederholungen, keine Schleifen in den Antworten
 - Eigene Meinung klar benennen wenn gefragt
+
+## UI/UX Skill
+
+Bei **jeder** Session und bei **jedem** UI-bezogenen Task (Design, Farben, Layout, Komponenten, Styles, Grafiken) automatisch den Skill laden:
+
+```
+/ui-ux-pro-max
+```
+
+Das gilt für: index.html, CSS-Dateien, Jarvis-Interface, jede Designentscheidung, Farbpaletten, Typografie, Icons.
