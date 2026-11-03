@@ -16,7 +16,7 @@
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
+      "args": ["-y", "@playwright/mcp@latest", "--browser", "chromium", "--executablePath", "/opt/pw-browsers/chromium"]
     },
     "composio": {
       "command": "npx",
