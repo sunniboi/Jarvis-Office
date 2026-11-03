@@ -226,7 +226,7 @@ function clearChat() {
 }
 
 function openChatSettings() {
-  const s = JarvisDB.get('chat_api', { provider: 'openai', key: '', model: '', baseUrl: '' });
+  const s = JarvisDB.get('chat_api', { provider: 'groq', key: '', model: '', baseUrl: '' });
   showModal(`
     <h3>⚙ Chat API-Einstellungen</h3>
     <div class="form-group">
@@ -241,11 +241,15 @@ function openChatSettings() {
     </div>
     <div class="form-group">
       <label>API-Key</label>
-      <input type="password" id="cs-key" value="${s.key||''}" placeholder="sk-… / sk-ant-…" autocomplete="off"/>
+      <div style="display:flex;gap:6px;">
+        <input type="password" id="cs-key" value="${s.key||''}" placeholder="gsk_… / sk-… / sk-ant-…" autocomplete="off" style="flex:1"/>
+        <button class="btn btn-ghost" style="padding:0 10px;font-size:12px;" onclick="loadGroqModels()">Modelle laden</button>
+      </div>
     </div>
     <div class="form-group">
       <label>Modell</label>
-      <input type="text" id="cs-model" value="${s.model||''}" placeholder="z.B. gpt-4o-mini / claude-haiku-4-5 / llama3"/>
+      <select id="cs-model-select" style="display:none"></select>
+      <input type="text" id="cs-model" value="${s.model||''}" placeholder="Key eingeben → Modelle laden klicken"/>
     </div>
     <div class="form-group" id="cs-baseurl-group" style="${s.provider==='ollama'?'':'display:none'}">
       <label>Ollama Base URL</label>
@@ -259,17 +263,51 @@ function openChatSettings() {
   `, () => {
     const provider = document.getElementById('cs-provider').value;
     const key = document.getElementById('cs-key').value.trim();
-    const model = document.getElementById('cs-model').value.trim();
+    const sel = document.getElementById('cs-model-select');
+    const model = (sel && sel.style.display !== 'none' ? sel.value : document.getElementById('cs-model').value).trim();
     const baseUrl = document.getElementById('cs-baseurl')?.value.trim();
     JarvisDB.set('chat_api', { provider, key, model, baseUrl });
     showNotify('API-Einstellungen gespeichert.', 'success');
   });
 
   setTimeout(() => {
-    const sel = document.getElementById('cs-provider');
-    if (sel) sel.addEventListener('change', () => {
+    const provSel = document.getElementById('cs-provider');
+    if (provSel) provSel.addEventListener('change', () => {
       const g = document.getElementById('cs-baseurl-group');
-      if (g) g.style.display = sel.value === 'ollama' ? '' : 'none';
+      if (g) g.style.display = provSel.value === 'ollama' ? '' : 'none';
     });
   }, 50);
+}
+
+async function loadGroqModels() {
+  const key = document.getElementById('cs-key')?.value.trim();
+  const provider = document.getElementById('cs-provider')?.value;
+  if (!key) { showNotify('Erst API-Key eintragen.', 'error'); return; }
+
+  const urls = {
+    groq: 'https://api.groq.com/openai/v1/models',
+    openai: 'https://api.openai.com/v1/models',
+  };
+  const url = urls[provider];
+  if (!url) { showNotify('Modell-Liste nur für Groq/OpenAI verfügbar.', 'error'); return; }
+
+  try {
+    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${key}` } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const models = (data.data || [])
+      .filter(m => !m.id.includes('whisper') && !m.id.includes('guard') && !m.id.includes('safeguard') && !m.id.includes('tts') && !m.id.includes('embed'))
+      .map(m => m.id)
+      .sort();
+
+    const sel = document.getElementById('cs-model-select');
+    const inp = document.getElementById('cs-model');
+    const current = inp.value;
+    sel.innerHTML = models.map(m => `<option value="${m}" ${m===current?'selected':''}>${m}</option>`).join('');
+    sel.style.display = '';
+    inp.style.display = 'none';
+    showNotify(`${models.length} Modelle geladen.`, 'success');
+  } catch(e) {
+    showNotify('Fehler: ' + e.message, 'error');
+  }
 }
