@@ -75,7 +75,8 @@ function goHome() {
 document.getElementById('btn-settings').addEventListener('click', openSettings);
 
 function openSettings() {
-  const s = JarvisDB.get('settings', {});
+  const s   = JarvisDB.get('settings', {});
+  const ac  = JarvisDB.get('agentConfig', {});
   showModal(`
     <h3>Einstellungen</h3>
     <div class="form-group">
@@ -86,6 +87,21 @@ function openSettings() {
       <label for="set-fontsize">Standard-Schriftgröße (Write)</label>
       <input type="number" id="set-fontsize" value="${s.fontSize || 14}" min="10" max="24" />
     </div>
+    <hr style="border-color:var(--border);margin:14px 0 10px"/>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);margin-bottom:8px">Jarvis Agent (KI)</div>
+    <div class="form-group">
+      <label for="set-apikey">Anthropic API-Key</label>
+      <input type="password" id="set-apikey" value="${sanitize(ac.apiKey || '')}" placeholder="sk-ant-…" autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label for="set-model">Modell</label>
+      <select id="set-model">
+        <option value="claude-haiku-4-5" ${(ac.model || 'claude-haiku-4-5') === 'claude-haiku-4-5' ? 'selected' : ''}>claude-haiku-4-5 (schnell &amp; günstig)</option>
+        <option value="claude-sonnet-4-5" ${ac.model === 'claude-sonnet-4-5' ? 'selected' : ''}>claude-sonnet-4-5 (ausgewogen)</option>
+        <option value="claude-opus-4-5"   ${ac.model === 'claude-opus-4-5'   ? 'selected' : ''}>claude-opus-4-5 (maximal)</option>
+      </select>
+    </div>
+    <p style="font-size:11px;color:var(--text-faint)">Key bleibt lokal im Browser. Agenten starten automatisch beim Öffnen einer App.</p>
     <div class="modal-actions">
       <button class="btn btn-ghost btn-cancel">Abbrechen</button>
       <button class="btn btn-primary btn-ok">Speichern</button>
@@ -93,7 +109,10 @@ function openSettings() {
   `, (modal) => {
     const name     = modal.querySelector('#set-name').value.trim() || 'Master';
     const fontSize = parseInt(modal.querySelector('#set-fontsize').value) || 14;
+    const apiKey   = modal.querySelector('#set-apikey').value.trim();
+    const model    = modal.querySelector('#set-model').value;
     JarvisDB.set('settings', { name, fontSize });
+    JarvisDB.set('agentConfig', { apiKey, model });
     showNotify('Einstellungen gespeichert.', 'success');
   });
 }
