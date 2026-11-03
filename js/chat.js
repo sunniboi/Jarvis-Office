@@ -24,15 +24,17 @@ const PROMPTS_LIBRARY = [
   { act: "Freier Assistent", prompt: "" },
 ];
 
-function initChat(container) {
-  const settings = JarvisDB.get('settings', {});
-  const apiSettings = JarvisDB.get('chat_api', { provider: 'none', key: '', model: '' });
+let _speechRecog = null;
+let _speechActive = false;
+let _ttsEnabled = false;
 
+function initChat(container) {
   container.innerHTML = `
     <div class="app-titlebar">
       <button class="back-btn" onclick="goHome()">←</button>
       <span class="app-title">Jarvis Chat</span>
       <div style="flex:1"></div>
+      <button id="tts-toggle" class="btn btn-ghost" style="font-size:12px;padding:4px 10px;" onclick="toggleTTS()" title="Sprachausgabe">🔇</button>
       <button class="btn btn-ghost" style="font-size:12px;padding:4px 10px;" onclick="openChatSettings()">⚙ API</button>
     </div>
     <div class="chat-layout">
@@ -47,10 +49,14 @@ function initChat(container) {
       <div class="chat-main">
         <div id="chat-system-bar" class="chat-system-bar">
           <span id="chat-system-label">Modus: <em id="chat-act-name">Freier Assistent</em></span>
-          <button class="btn-ghost-xs" onclick="clearChat()">Chat leeren</button>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="btn-ghost-xs" onclick="openAgentTools()" title="Agent-Tools">🛠 Tools</button>
+            <button class="btn-ghost-xs" onclick="clearChat()">Chat leeren</button>
+          </div>
         </div>
         <div id="chat-messages" class="chat-messages"></div>
         <div class="chat-input-bar">
+          <button id="mic-btn" class="btn btn-ghost chat-mic-btn" onclick="toggleMic()" title="Spracheingabe">🎤</button>
           <textarea id="chat-input" class="chat-textarea" placeholder="Nachricht eingeben… (Enter = senden, Shift+Enter = Zeilenumbruch)" rows="3"></textarea>
           <button id="chat-send-btn" class="btn btn-primary chat-send-btn" onclick="sendChatMessage()">Senden</button>
         </div>
@@ -69,6 +75,119 @@ function initChat(container) {
   window._chatHistory = [];
   window._chatSystemPrompt = '';
   window._chatActName = 'Freier Assistent';
+  window._agentTools = JarvisDB.get('agent_tools', { websearch: false, datetime: true, fileread: false });
+}
+
+// ===== SPRACHEINGABE =====
+function toggleMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showNotify('Spracheingabe nicht unterstützt.', 'error'); return; }
+  if (_speechActive) {
+    _speechRecog && _speechRecog.stop();
+    return;
+  }
+  _speechRecog = new SR();
+  _speechRecog.lang = 'de-DE';
+  _speechRecog.continuous = false;
+  _speechRecog.interimResults = false;
+  _speechRecog.onstart = () => {
+    _speechActive = true;
+    const btn = document.getElementById('mic-btn');
+    if (btn) { btn.textContent = '⏹'; btn.style.color = 'var(--danger)'; }
+  };
+  _speechRecog.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    const ta = document.getElementById('chat-input');
+    if (ta) ta.value = text;
+  };
+  _speechRecog.onend = () => {
+    _speechActive = false;
+    const btn = document.getElementById('mic-btn');
+    if (btn) { btn.textContent = '🎤'; btn.style.color = ''; }
+  };
+  _speechRecog.onerror = () => {
+    _speechActive = false;
+    const btn = document.getElementById('mic-btn');
+    if (btn) { btn.textContent = '🎤'; btn.style.color = ''; }
+    showNotify('Mikrofon-Fehler.', 'error');
+  };
+  _speechRecog.start();
+}
+
+// ===== SPRACHAUSGABE =====
+function toggleTTS() {
+  _ttsEnabled = !_ttsEnabled;
+  const btn = document.getElementById('tts-toggle');
+  if (btn) btn.textContent = _ttsEnabled ? '🔊' : '🔇';
+  showNotify(_ttsEnabled ? 'Sprachausgabe an.' : 'Sprachausgabe aus.', 'success');
+}
+
+function speakText(text) {
+  if (!_ttsEnabled || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/[*_`#]/g, '').replace(/<[^>]+>/g, '').substring(0, 500);
+  const utt = new SpeechSynthesisUtterance(clean);
+  utt.lang = 'de-DE';
+  utt.rate = 1.0;
+  window.speechSynthesis.speak(utt);
+}
+
+// ===== AGENT TOOLS =====
+function openAgentTools() {
+  const t = window._agentTools || { websearch: false, datetime: true, fileread: false };
+  showModal(`
+    <h3>🛠 Agent-Tools</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Diese Tools stehen dem KI-Agenten zur Verfügung.</p>
+    <div class="form-group" style="flex-direction:row;align-items:center;gap:10px;">
+      <input type="checkbox" id="tool-websearch" ${t.websearch?'checked':''} style="width:auto"/>
+      <label for="tool-websearch" style="margin:0">🌐 Websuche (DuckDuckGo)</label>
+    </div>
+    <div class="form-group" style="flex-direction:row;align-items:center;gap:10px;">
+      <input type="checkbox" id="tool-datetime" ${t.datetime?'checked':''} style="width:auto"/>
+      <label for="tool-datetime" style="margin:0">🕐 Datum & Uhrzeit</label>
+    </div>
+    <div class="form-group" style="flex-direction:row;align-items:center;gap:10px;">
+      <input type="checkbox" id="tool-fileread" ${t.fileread?'checked':''} style="width:auto"/>
+      <label for="tool-fileread" style="margin:0">📂 Datei lesen (vom Gerät)</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-cancel">Abbrechen</button>
+      <button class="btn btn-primary btn-ok">Speichern</button>
+    </div>
+  `, () => {
+    window._agentTools = {
+      websearch: document.getElementById('tool-websearch').checked,
+      datetime: document.getElementById('tool-datetime').checked,
+      fileread: document.getElementById('tool-fileread').checked,
+    };
+    JarvisDB.set('agent_tools', window._agentTools);
+    showNotify('Tools gespeichert.', 'success');
+  });
+}
+
+async function runAgentTools(userText) {
+  const tools = window._agentTools || {};
+  const results = [];
+
+  if (tools.datetime) {
+    const now = new Date();
+    results.push(`[Aktuelles Datum & Uhrzeit: ${now.toLocaleString('de-DE')}]`);
+  }
+
+  if (tools.websearch && userText.length > 5) {
+    try {
+      const query = encodeURIComponent(userText.substring(0, 100));
+      const res = await fetch(`https://api.duckduckgo.com/?q=${query}&format=json&no_html=1&skip_disambig=1`);
+      const data = await res.json();
+      if (data.AbstractText) {
+        results.push(`[Websuche-Ergebnis: ${data.AbstractText.substring(0, 400)}]`);
+      } else if (data.RelatedTopics?.[0]?.Text) {
+        results.push(`[Websuche: ${data.RelatedTopics[0].Text.substring(0, 400)}]`);
+      }
+    } catch(e) {}
+  }
+
+  return results.join('\n');
 }
 
 function renderPromptList(prompts) {
@@ -138,12 +257,11 @@ async function sendChatMessage() {
   ta.value = '';
 
   appendChatMsg('user', text);
-  window._chatHistory.push({ role: 'user', content: text });
 
   const apiSettings = JarvisDB.get('chat_api', { provider: 'none', key: '', model: '' });
 
   if (!apiSettings.key || apiSettings.provider === 'none') {
-    appendChatMsg('assistant', '⚠ Kein API-Key konfiguriert. Bitte unter ⚙ API den Key eintragen.\n\n*Tipp: OpenAI, Anthropic Claude oder Ollama (lokal) werden unterstützt.*');
+    appendChatMsg('assistant', '⚠ Kein API-Key konfiguriert. Bitte unter ⚙ API den Key eintragen.');
     return;
   }
 
@@ -151,9 +269,13 @@ async function sendChatMessage() {
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
 
   try {
+    const toolContext = await runAgentTools(text);
+    const fullText = toolContext ? `${toolContext}\n\nNutzerfrage: ${text}` : text;
+    window._chatHistory.push({ role: 'user', content: fullText });
     const reply = await callChatAPI(apiSettings, window._chatSystemPrompt, window._chatHistory);
     window._chatHistory.push({ role: 'assistant', content: reply });
     appendChatMsg('assistant', reply);
+    speakText(reply);
   } catch (err) {
     appendChatMsg('assistant', `❌ Fehler: ${err.message}`);
   } finally {
