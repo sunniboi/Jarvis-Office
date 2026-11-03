@@ -109,3 +109,5 @@ const Strix = (() => {
 
   return { init, sanitizeHTML, checkStorage };
 })();
+
+Strix.init();
