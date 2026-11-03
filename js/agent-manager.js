@@ -219,32 +219,9 @@ const AgentManager = (() => {
     setStatus('Analysiert …', 'busy');
 
     try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': c.apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: c.model || 'claude-haiku-4-5',
-          max_tokens: 300,
-          system: def.system,
-          messages: [{ role: 'user', content: def.prompt(content) }],
-        }),
-      });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `HTTP ${resp.status}`);
-      }
-
-      const data = await resp.json();
-      const text = data?.content?.[0]?.text || '';
+      const text = await agentCallOnce(def.system, def.prompt(content));
       showResult(text);
       setStatus('Aktuell', 'ok');
-
     } catch (e) {
       setStatus(`Fehler: ${e.message.slice(0, 60)}`, 'error');
     } finally {

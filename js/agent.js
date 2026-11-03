@@ -248,56 +248,14 @@ function initAgent(container) {
     sendBtn.disabled = true;
 
     const bubble = addMessage('assistant', '', true);
+    const hist = container.querySelector('#agent-chat-history');
 
     try {
-      const model = cfg.model || 'claude-haiku-4-5';
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': cfg.apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 2048,
-          system: 'Du bist Jarvis, ein präziser und hilfreicher KI-Assistent innerhalb der Jarvis Office Suite. Antworte klar, direkt und ohne unnötige Floskeln.',
-          messages: chatHistory,
-          stream: true,
-        }),
+      const system = 'Du bist Jarvis, ein präziser und hilfreicher KI-Assistent innerhalb der Jarvis Office Suite. Antworte klar, direkt und ohne unnötige Floskeln.';
+      const fullText = await agentCallStream(system, chatHistory, (text) => {
+        bubble.textContent = text;
+        hist.scrollTop = 9999;
       });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: { message: resp.statusText } }));
-        throw new Error(err?.error?.message || `HTTP ${resp.status}`);
-      }
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = '';
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') continue;
-          try {
-            const evt = JSON.parse(data);
-            if (evt.type === 'content_block_delta' && evt.delta?.text) {
-              fullText += evt.delta.text;
-              bubble.textContent = fullText;
-              container.querySelector('#agent-chat-history').scrollTop = 9999;
-            }
-          } catch { /* partial JSON — skip */ }
-        }
-      }
 
       bubble.removeAttribute('id');
       chatHistory.push({ role: 'assistant', content: fullText });
@@ -320,38 +278,67 @@ function initAgent(container) {
 
 function openAgentSettings() {
   const cfg = JarvisDB.get('agentConfig', {});
+  const prov = cfg.provider || 'groq';
+
+  function modelOptions(provider) {
+    const p = AGENT_PROVIDERS[provider];
+    if (!p) return '';
+    return p.models.map(m =>
+      `<option value="${m.id}" ${(cfg.model || p.defaultModel) === m.id ? 'selected' : ''}>${m.label}</option>`
+    ).join('');
+  }
+
   showModal(`
     <h3>Jarvis Agent — Einstellungen</h3>
     <div class="form-group">
-      <label for="ag-key">Anthropic API-Key</label>
-      <input type="password" id="ag-key" value="${sanitize(cfg.apiKey || '')}" placeholder="sk-ant-…" autocomplete="off" />
+      <label for="ag-provider">KI-Anbieter</label>
+      <select id="ag-provider">
+        <option value="groq"      ${prov === 'groq'      ? 'selected' : ''}>Groq (kostenlos, sehr schnell)</option>
+        <option value="anthropic" ${prov === 'anthropic' ? 'selected' : ''}>Anthropic Claude (bezahlt)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="ag-key" id="ag-key-label">API-Key</label>
+      <input type="password" id="ag-key" value="${sanitize(cfg.apiKey || '')}"
+             placeholder="${AGENT_PROVIDERS[prov]?.keyPlaceholder || ''}" autocomplete="off" />
     </div>
     <div class="form-group">
       <label for="ag-model">Modell</label>
-      <select id="ag-model">
-        <option value="claude-haiku-4-5" ${(cfg.model || 'claude-haiku-4-5') === 'claude-haiku-4-5' ? 'selected' : ''}>claude-haiku-4-5 (schnell, günstig)</option>
-        <option value="claude-sonnet-4-5" ${cfg.model === 'claude-sonnet-4-5' ? 'selected' : ''}>claude-sonnet-4-5 (ausgewogen)</option>
-        <option value="claude-opus-4-5" ${cfg.model === 'claude-opus-4-5' ? 'selected' : ''}>claude-opus-4-5 (maximal)</option>
-      </select>
+      <select id="ag-model">${modelOptions(prov)}</select>
     </div>
-    <p style="font-size:11px;color:var(--text-faint);margin-top:4px">Der API-Key wird ausschließlich lokal gespeichert (localStorage) und nicht übertragen.</p>
+    <p style="font-size:11px;color:var(--text-faint);margin-top:4px">Key bleibt lokal im Browser — wird nirgends übertragen.</p>
     <div class="modal-actions">
       <button class="btn btn-ghost btn-cancel">Abbrechen</button>
       <button class="btn btn-primary btn-ok">Speichern</button>
     </div>
   `, (modal) => {
-    const apiKey = modal.querySelector('#ag-key').value.trim();
-    const model  = modal.querySelector('#ag-model').value;
-    JarvisDB.set('agentConfig', { apiKey, model });
+    const provider = modal.querySelector('#ag-provider').value;
+    const apiKey   = modal.querySelector('#ag-key').value.trim();
+    const model    = modal.querySelector('#ag-model').value;
+    JarvisDB.set('agentConfig', { provider, apiKey, model });
     showNotify('Agent-Einstellungen gespeichert.', 'success');
-    // refresh hint if agent is open
     const hint = document.querySelector('#agent-api-hint');
-    if (hint) {
-      if (apiKey) {
-        hint.innerHTML = `<span style="color:var(--app-calc)">✓ API konfiguriert</span>`;
-        const status = document.querySelector('#agent-status');
-        if (status) { status.textContent = '● Bereit'; status.style.color = 'var(--app-calc)'; }
-      }
+    if (hint && apiKey) {
+      hint.innerHTML = `<span style="color:var(--app-calc)">✓ ${AGENT_PROVIDERS[provider]?.label || provider} konfiguriert</span>`;
+      const status = document.querySelector('#agent-status');
+      if (status) { status.textContent = '● Bereit'; status.style.color = 'var(--app-calc)'; }
     }
   });
+
+  // Live: Provider-Wechsel aktualisiert Modell-Liste + Placeholder
+  setTimeout(() => {
+    const provSel  = document.querySelector('#ag-provider');
+    const modelSel = document.querySelector('#ag-model');
+    const keyInput = document.querySelector('#ag-key');
+    if (!provSel) return;
+    provSel.addEventListener('change', () => {
+      const p = AGENT_PROVIDERS[provSel.value];
+      if (!p) return;
+      modelSel.innerHTML = p.models.map(m =>
+        `<option value="${m.id}" ${m.id === p.defaultModel ? 'selected' : ''}>${m.label}</option>`
+      ).join('');
+      keyInput.placeholder = p.keyPlaceholder;
+      keyInput.value = '';
+    });
+  }, 50);
 }

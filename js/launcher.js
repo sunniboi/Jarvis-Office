@@ -90,31 +90,57 @@ function openSettings() {
     <hr style="border-color:var(--border);margin:14px 0 10px"/>
     <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);margin-bottom:8px">Jarvis Agent (KI)</div>
     <div class="form-group">
-      <label for="set-apikey">Anthropic API-Key</label>
-      <input type="password" id="set-apikey" value="${sanitize(ac.apiKey || '')}" placeholder="sk-ant-…" autocomplete="off" />
-    </div>
-    <div class="form-group">
-      <label for="set-model">Modell</label>
-      <select id="set-model">
-        <option value="claude-haiku-4-5" ${(ac.model || 'claude-haiku-4-5') === 'claude-haiku-4-5' ? 'selected' : ''}>claude-haiku-4-5 (schnell &amp; günstig)</option>
-        <option value="claude-sonnet-4-5" ${ac.model === 'claude-sonnet-4-5' ? 'selected' : ''}>claude-sonnet-4-5 (ausgewogen)</option>
-        <option value="claude-opus-4-5"   ${ac.model === 'claude-opus-4-5'   ? 'selected' : ''}>claude-opus-4-5 (maximal)</option>
+      <label for="set-provider">Primärer Anbieter</label>
+      <select id="set-provider">
+        <option value="groq"      ${(ac.provider||'groq')==='groq'      ?'selected':''}>Groq (kostenlos, schnell)</option>
+        <option value="gemini"    ${ac.provider==='gemini'    ?'selected':''}>Google Gemini (kostenlos)</option>
+        <option value="together"  ${ac.provider==='together'  ?'selected':''}>Together AI (kostenlos)</option>
+        <option value="ollama"    ${ac.provider==='ollama'    ?'selected':''}>Ollama (lokal, offline)</option>
+        <option value="anthropic" ${ac.provider==='anthropic' ?'selected':''}>Anthropic Claude (bezahlt)</option>
       </select>
     </div>
-    <p style="font-size:11px;color:var(--text-faint)">Key bleibt lokal im Browser. Agenten starten automatisch beim Öffnen einer App.</p>
+    <div class="form-group">
+      <label for="set-apikey">API-Key (Primär)</label>
+      <input type="password" id="set-apikey" value="${sanitize(ac.apiKey || '')}" placeholder="Key des gewählten Anbieters" autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label for="set-fallback">Fallback-Anbieter (bei Rate-Limit)</label>
+      <select id="set-fallback">
+        <option value=""         ${!ac.fallbackProvider?'selected':''}>Kein Fallback</option>
+        <option value="groq"     ${ac.fallbackProvider==='groq'     ?'selected':''}>Groq</option>
+        <option value="gemini"   ${ac.fallbackProvider==='gemini'   ?'selected':''}>Google Gemini</option>
+        <option value="together" ${ac.fallbackProvider==='together' ?'selected':''}>Together AI</option>
+        <option value="ollama"   ${ac.fallbackProvider==='ollama'   ?'selected':''}>Ollama (lokal)</option>
+      </select>
+    </div>
+    <div class="form-group" id="set-fbkey-wrap" style="${ac.fallbackProvider?'':'display:none'}">
+      <label for="set-fallbackkey">API-Key (Fallback)</label>
+      <input type="password" id="set-fallbackkey" value="${sanitize(ac.fallbackApiKey||'')}" placeholder="Key des Fallback-Anbieters" autocomplete="off" />
+    </div>
+    <p style="font-size:11px;color:var(--text-faint)">Keys bleiben lokal im Browser. Agenten starten automatisch beim Öffnen einer App.</p>
     <div class="modal-actions">
       <button class="btn btn-ghost btn-cancel">Abbrechen</button>
       <button class="btn btn-primary btn-ok">Speichern</button>
     </div>
   `, (modal) => {
-    const name     = modal.querySelector('#set-name').value.trim() || 'Master';
-    const fontSize = parseInt(modal.querySelector('#set-fontsize').value) || 14;
-    const apiKey   = modal.querySelector('#set-apikey').value.trim();
-    const model    = modal.querySelector('#set-model').value;
+    const name            = modal.querySelector('#set-name').value.trim() || 'Master';
+    const fontSize        = parseInt(modal.querySelector('#set-fontsize').value) || 14;
+    const provider        = modal.querySelector('#set-provider').value;
+    const apiKey          = modal.querySelector('#set-apikey').value.trim();
+    const fallbackProvider= modal.querySelector('#set-fallback').value;
+    const fallbackApiKey  = modal.querySelector('#set-fallbackkey')?.value.trim() || '';
+    const prevAc          = JarvisDB.get('agentConfig', {});
     JarvisDB.set('settings', { name, fontSize });
-    JarvisDB.set('agentConfig', { apiKey, model });
+    JarvisDB.set('agentConfig', { provider, apiKey, model: prevAc.model || '', fallbackProvider, fallbackApiKey });
     showNotify('Einstellungen gespeichert.', 'success');
   });
+
+  // Live: Fallback-Key-Feld ein-/ausblenden
+  setTimeout(() => {
+    const fb = document.querySelector('#set-fallback');
+    const fw = document.querySelector('#set-fbkey-wrap');
+    if (fb && fw) fb.addEventListener('change', () => { fw.style.display = fb.value ? '' : 'none'; });
+  }, 50);
 }
 
 // Clock
