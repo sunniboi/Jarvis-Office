@@ -341,3 +341,9 @@ label { font-size: 12px; color: var(--text2); margin-bottom: 4px; display: block
 .chat-send-btn { padding: 10px 20px; align-self: flex-end; background: var(--chat); border-color: var(--chat); }
 .chat-send-btn:hover { background: #818cf8; border-color: #818cf8; }
 .chat-mic-btn { padding: 0 12px; font-size: 16px; flex-shrink: 0; }
+.api-setup-panel { background: var(--surface2); border: 1px solid var(--chat); border-radius: var(--radius-lg); padding: 16px; margin: 8px 0; }
+.api-setup-title { font-size: 14px; font-weight: 700; color: var(--chat); margin-bottom: 12px; }
+.api-setup-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.api-setup-row label { font-size: 11px; color: var(--text3); }
+.api-setup-row input, .api-setup-row select { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 8px 10px; font-size: 13px; outline: none; }
+.api-setup-row input:focus, .api-setup-row select:focus { border-color: var(--chat); }

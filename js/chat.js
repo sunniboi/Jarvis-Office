@@ -261,7 +261,7 @@ async function sendChatMessage() {
   const apiSettings = JarvisDB.get('chat_api', { provider: 'none', key: '', model: '' });
 
   if (!apiSettings.key || apiSettings.provider === 'none') {
-    appendChatMsg('assistant', '⚠ Kein API-Key konfiguriert. Bitte unter ⚙ API den Key eintragen.');
+    showApiPanel();
     return;
   }
 
@@ -378,6 +378,48 @@ function clearChat() {
   if (window._chatSystemPrompt) {
     appendChatMsg('system', `System-Prompt aktiv: "${window._chatSystemPrompt.substring(0, 120)}${window._chatSystemPrompt.length > 120 ? '…' : ''}"`);
   }
+}
+
+function showApiPanel() {
+  const msgs = document.getElementById('chat-messages');
+  if (!msgs) return;
+  if (document.getElementById('api-setup-panel')) return;
+  const s = JarvisDB.get('chat_api', { provider: 'groq', key: '', model: 'openai/gpt-oss-20b', baseUrl: '' });
+  const panel = document.createElement('div');
+  panel.id = 'api-setup-panel';
+  panel.className = 'api-setup-panel';
+  panel.innerHTML = `
+    <div class="api-setup-title">⚙ API-Key einrichten</div>
+    <div class="api-setup-row">
+      <label>Provider</label>
+      <select id="asp-provider">
+        <option value="groq" ${s.provider==='groq'?'selected':''}>Groq (kostenlos)</option>
+        <option value="openai" ${s.provider==='openai'?'selected':''}>OpenAI</option>
+        <option value="anthropic" ${s.provider==='anthropic'?'selected':''}>Anthropic Claude</option>
+      </select>
+    </div>
+    <div class="api-setup-row">
+      <label>API-Key</label>
+      <input type="password" id="asp-key" placeholder="gsk_… oder sk-…" value="${s.key||''}"/>
+    </div>
+    <div class="api-setup-row">
+      <label>Modell</label>
+      <input type="text" id="asp-model" placeholder="openai/gpt-oss-20b" value="${s.model||'openai/gpt-oss-20b'}"/>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="saveApiPanel()">✓ Speichern & loslegen</button>
+  `;
+  msgs.appendChild(panel);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function saveApiPanel() {
+  const provider = document.getElementById('asp-provider')?.value;
+  const key = document.getElementById('asp-key')?.value?.trim();
+  const model = document.getElementById('asp-model')?.value?.trim() || 'openai/gpt-oss-20b';
+  if (!key) { showNotify('Bitte Key eintragen.', 'error'); return; }
+  JarvisDB.set('chat_api', { provider, key, model, baseUrl: '' });
+  document.getElementById('api-setup-panel')?.remove();
+  showNotify('Gespeichert ✓ — jetzt kannst du schreiben!', 'success');
 }
 
 function openChatSettings() {
