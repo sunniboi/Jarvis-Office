@@ -1,16 +1,12 @@
 #!/bin/bash
-# Jarvis Office Starter
-# Öffnet Jarvis Office im Standard-Browser
-
 APP_DIR="/usr/share/jarvis-office"
 INDEX="$APP_DIR/index.html"
 
 if [ ! -f "$INDEX" ]; then
-    echo "Fehler: Jarvis Office Dateien nicht gefunden unter $APP_DIR" >&2
+    echo "Fehler: $INDEX nicht gefunden" >&2
     exit 1
 fi
 
-# Browser-Reihenfolge: Chromium-App-Modus bevorzugt (kein Browser-Chrome = sauberes Fenster)
 launch_chromium_app() {
     local bin="$1"
     "$bin" --app="file://$INDEX" \
@@ -30,12 +26,14 @@ elif command -v google-chrome-stable >/dev/null 2>&1; then
     launch_chromium_app google-chrome-stable
 elif command -v google-chrome >/dev/null 2>&1; then
     launch_chromium_app google-chrome
+elif command -v opera >/dev/null 2>&1; then
+    opera "file://$INDEX" 2>/dev/null &
 elif command -v firefox >/dev/null 2>&1; then
     firefox "file://$INDEX" 2>/dev/null &
 elif command -v xdg-open >/dev/null 2>&1; then
     xdg-open "file://$INDEX" 2>/dev/null &
 else
-    echo "Kein Browser gefunden. Bitte öffne manuell: file://$INDEX" >&2
+    echo "Kein Browser gefunden." >&2
     exit 1
 fi
 
