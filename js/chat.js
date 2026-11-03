@@ -166,19 +166,21 @@ async function callChatAPI(cfg, systemPrompt, history) {
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push(...history);
 
-  if (cfg.provider === 'openai' || cfg.provider === 'ollama') {
+  if (cfg.provider === 'openai' || cfg.provider === 'ollama' || cfg.provider === 'groq') {
     const url = cfg.provider === 'ollama'
       ? `${cfg.baseUrl || 'http://localhost:11434'}/v1/chat/completions`
+      : cfg.provider === 'groq'
+      ? 'https://api.groq.com/openai/v1/chat/completions'
       : 'https://api.openai.com/v1/chat/completions';
 
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(cfg.provider === 'openai' ? { 'Authorization': `Bearer ${cfg.key}` } : {}),
+        ...(cfg.provider !== 'ollama' ? { 'Authorization': `Bearer ${cfg.key}` } : {}),
       },
       body: JSON.stringify({
-        model: cfg.model || (cfg.provider === 'ollama' ? 'llama3' : 'gpt-4o-mini'),
+        model: cfg.model || (cfg.provider === 'ollama' ? 'llama3' : cfg.provider === 'groq' ? 'llama-3.1-8b-instant' : 'gpt-4o-mini'),
         messages,
         max_tokens: 2048,
         temperature: 0.7,
@@ -230,6 +232,7 @@ function openChatSettings() {
     <div class="form-group">
       <label>Provider</label>
       <select id="cs-provider">
+        <option value="groq" ${s.provider==='groq'?'selected':''}>Groq (kostenlos)</option>
         <option value="openai" ${s.provider==='openai'?'selected':''}>OpenAI (ChatGPT)</option>
         <option value="anthropic" ${s.provider==='anthropic'?'selected':''}>Anthropic (Claude)</option>
         <option value="ollama" ${s.provider==='ollama'?'selected':''}>Ollama (lokal)</option>
