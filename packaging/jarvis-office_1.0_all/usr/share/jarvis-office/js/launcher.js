@@ -9,6 +9,7 @@ const APPS = {
   mail:     { name: 'Jarvis Mail',     color: 'var(--mail)',     init: (c) => initMail(c) },
   notes:    { name: 'Jarvis Notes',    color: 'var(--notes)',    init: (c) => initNotes(c) },
   calendar: { name: 'Jarvis Calendar', color: 'var(--calendar)', init: (c) => initCalendar(c) },
+  briefing: { name: 'Daily Briefing',   color: '#6366f1',         init: (c) => initBriefing(c) },
 };
 
 let currentApp = null;

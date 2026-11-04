@@ -299,3 +299,35 @@ label { font-size: 12px; color: var(--text2); margin-bottom: 4px; display: block
 .mini-day:hover { background: var(--surface); }
 .mini-day.today { background: var(--accent); color: #fff; border-radius: 3px; }
 .mini-day-name { color: var(--text3); font-weight: 600; }
+
+/* ===== DAILY BRIEFING APP ===== */
+.briefing-window { display: flex; flex-direction: column; height: 100%; background: var(--bg); }
+.briefing-body { flex: 1; overflow-y: auto; padding: 24px; max-width: 860px; margin: 0 auto; width: 100%; }
+.briefing-hero { text-align: center; padding: 32px 0 24px; }
+.briefing-date { font-size: 13px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.briefing-greeting { font-size: 28px; font-weight: 700; color: var(--text); }
+.briefing-tagline { font-size: 14px; color: var(--text2); margin-top: 6px; }
+.briefing-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .briefing-sections { grid-template-columns: 1fr; } }
+.briefing-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.briefing-card-header { display: flex; align-items: center; gap: 8px; }
+.briefing-card-icon { font-size: 18px; }
+.briefing-card-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.briefing-note-area { width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 10px; font-size: 13px; font-family: var(--font); resize: vertical; min-height: 90px; outline: none; line-height: 1.6; }
+.briefing-note-area:focus { border-color: var(--accent); }
+.briefing-save-note { align-self: flex-end; }
+.briefing-task-list { display: flex; flex-direction: column; gap: 6px; }
+.briefing-task-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--bg2); border-radius: 6px; }
+.briefing-task-item.done .briefing-task-text { text-decoration: line-through; color: var(--text3); }
+.briefing-task-cb { accent-color: var(--accent); cursor: pointer; }
+.briefing-task-text { flex: 1; font-size: 13px; color: var(--text); }
+.briefing-task-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 12px; padding: 2px 4px; border-radius: 4px; }
+.briefing-task-del:hover { background: var(--surface2); color: var(--text); }
+.briefing-add-task { display: flex; gap: 8px; }
+.briefing-task-input { flex: 1; background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-size: 13px; outline: none; }
+.briefing-task-input:focus { border-color: var(--accent); }
+.briefing-empty { font-size: 12px; color: var(--text3); text-align: center; padding: 12px 0; }
+.briefing-stat-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); }
+.briefing-progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin: 8px 0 4px; overflow: hidden; }
+.briefing-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
+.briefing-stat-pct { font-size: 20px; font-weight: 700; color: var(--accent2); text-align: center; }
