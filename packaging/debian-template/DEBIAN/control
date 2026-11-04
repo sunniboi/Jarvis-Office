@@ -1,0 +1,23 @@
+Package: jarvis-office
+Version: @VERSION@
+Section: office
+Priority: optional
+Architecture: all
+Depends: xdg-utils
+Recommends: chromium | chromium-browser | google-chrome-stable | firefox | firefox-esr
+Installed-Size: @INSTALLED_SIZE@
+Maintainer: Jarvis Office <sunniboi@freenet.de>
+Homepage: https://github.com/sunniboi/Jarvis-Office
+Description: lokale Office-Suite im Browser
+ Jarvis Office ist eine lokale Office-Suite aus 8 Anwendungen:
+  * Jarvis Write    – Textverarbeitung
+  * Jarvis Calc     – Tabellenkalkulation mit Formeln
+  * Jarvis Matrix   – Smart-Tabellen
+  * Jarvis Draw     – Vektorgrafik-Editor
+  * Jarvis Present  – Präsentationen mit Vollbild-Modus
+  * Jarvis Mail     – lokaler E-Mail-Client
+  * Jarvis Notes    – Schnellnotizen mit Auto-Save
+  * Jarvis Calendar – Kalender mit ICS-Import/-Export
+ .
+ Kein Server, kein Internet erforderlich. Alle Daten bleiben im
+ Browser-Speicher (localStorage) auf diesem Gerät.

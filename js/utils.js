@@ -56,7 +56,7 @@ function showModal(html, onOk, onCancel) {
   const btnOk     = modal.querySelector('.btn-ok');
   const btnCancel = modal.querySelector('.btn-cancel');
 
-  function close() { overlay.remove(); }
+  function close() { overlay.remove(); document.removeEventListener('keydown', esc); }
 
   if (btnOk) {
     btnOk.addEventListener('click', () => {
@@ -73,9 +73,10 @@ function showModal(html, onOk, onCancel) {
   overlay.addEventListener('click', e => {
     if (e.target === overlay) { close(); onCancel && onCancel(); }
   });
-  document.addEventListener('keydown', function esc(e) {
-    if (e.key === 'Escape') { close(); onCancel && onCancel(); document.removeEventListener('keydown', esc); }
-  });
+  function esc(e) {
+    if (e.key === 'Escape') { close(); onCancel && onCancel(); }
+  }
+  document.addEventListener('keydown', esc);
 
   overlay.append(modal);
   document.body.append(overlay);

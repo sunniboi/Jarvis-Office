@@ -1,0 +1,79 @@
+#!/bin/sh
+# Jarvis Office Starter – öffnet Jarvis Office im Browser (App-Fenster)
+
+APP_DIR="/usr/share/jarvis-office"
+
+if [ ! -f "$APP_DIR/index.html" ]; then
+    echo "Fehler: Jarvis Office Dateien nicht gefunden unter $APP_DIR" >&2
+    exit 1
+fi
+
+# Snap-Browser (Ubuntu-Standard für Chromium und Firefox) sehen /usr/share
+# des Systems nicht und dürfen nicht in versteckte Ordner wie ~/.config
+# schreiben. Für sie werden die App-Dateien in den Snap-eigenen Ordner
+# ~/snap/<name>/common kopiert und von dort geöffnet.
+is_snap() {
+    path="$(readlink -f "$(command -v "$1")" 2>/dev/null)"
+    case "$path" in
+        /snap/*|*/snap/bin/*) return 0 ;;
+    esac
+    # Ubuntu: /usr/bin/chromium-browser bzw. /usr/bin/firefox sind
+    # Übergangs-Skripte, die den Snap starten
+    if [ -f "$path" ] && ! head -c 4 "$path" | grep -q 'ELF'; then
+        grep -qs '/snap/' "$path" && return 0
+    fi
+    return 1
+}
+
+prepare_snap_copy() {
+    # $1 = Snap-Name (z. B. chromium, firefox)
+    snap_dir="$HOME/snap/$1/common/jarvis-office"
+    mkdir -p "$snap_dir/app" || return 1
+    # App-Dateien aktualisieren, Profil (Nutzerdaten) bleibt erhalten
+    cp -r "$APP_DIR/." "$snap_dir/app/" || return 1
+    INDEX="$snap_dir/app/index.html"
+    PROFILE="$snap_dir/profile"
+}
+
+launch_chromium() {
+    bin="$1"
+    INDEX="$APP_DIR/index.html"
+    PROFILE="$HOME/.config/jarvis-office"
+    if is_snap "$bin"; then
+        prepare_snap_copy chromium || { echo "Fehler: Snap-Ordner nicht beschreibbar" >&2; exit 1; }
+    fi
+    "$bin" --app="file://$INDEX" \
+           --class=jarvis-office \
+           --window-size=1400,900 \
+           --user-data-dir="$PROFILE" \
+           --no-first-run \
+           --disable-translate \
+           --noerrdialogs \
+           >/dev/null 2>&1 &
+    exit 0
+}
+
+launch_firefox() {
+    bin="$1"
+    INDEX="$APP_DIR/index.html"
+    if is_snap "$bin"; then
+        prepare_snap_copy firefox || { echo "Fehler: Snap-Ordner nicht beschreibbar" >&2; exit 1; }
+    fi
+    "$bin" --new-window "file://$INDEX" >/dev/null 2>&1 &
+    exit 0
+}
+
+# Chromium-basierte Browser zuerst (App-Modus = eigenes Fenster ohne Browserleiste)
+for b in chromium chromium-browser google-chrome-stable google-chrome; do
+    command -v "$b" >/dev/null 2>&1 && launch_chromium "$b"
+done
+for b in firefox firefox-esr; do
+    command -v "$b" >/dev/null 2>&1 && launch_firefox "$b"
+done
+if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "file://$APP_DIR/index.html" >/dev/null 2>&1 &
+    exit 0
+fi
+
+echo "Kein Browser gefunden. Bitte manuell öffnen: file://$APP_DIR/index.html" >&2
+exit 1

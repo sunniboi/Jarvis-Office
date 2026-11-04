@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+# Nutzerdaten (~/.config/jarvis-office bzw. ~/snap/*/common/jarvis-office)
+# werden bewusst NICHT gelöscht – das sind die Dokumente der Nutzer.
+exit 0

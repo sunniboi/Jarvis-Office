@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+# Icon- und Menü-Cache werden von dpkg-Triggern (hicolor-icon-theme,
+# desktop-file-utils) automatisch aktualisiert.
+if [ "$1" = "configure" ]; then
+    echo "Jarvis Office @VERSION@ installiert. Start: 'jarvis-office' oder Anwendungsmenü > Büro."
+fi
+exit 0

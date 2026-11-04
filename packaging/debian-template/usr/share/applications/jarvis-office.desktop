@@ -1,17 +1,14 @@
 [Desktop Entry]
-Version=1.0
 Type=Application
 Name=Jarvis Office
-Name[de]=Jarvis Office
 GenericName=Office Suite
 GenericName[de]=Office-Suite
-Comment=Vollständige lokale Office-Suite
-Comment[de]=Vollständige lokale Office-Suite
+Comment=Local office suite
+Comment[de]=Lokale Office-Suite
 Exec=jarvis-office
 Icon=jarvis-office
 Terminal=false
-Categories=Office;Productivity;
+Categories=Office;
 Keywords=Office;Tabelle;Textverarbeitung;Kalender;Notizen;Zeichnen;Präsentation;
 StartupNotify=true
 StartupWMClass=jarvis-office
-MimeType=text/html;

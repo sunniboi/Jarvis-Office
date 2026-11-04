@@ -97,7 +97,7 @@ function initCalc(container) {
   }
 
   function evalFormula(expr) {
-    if (!expr.startsWith('=')) return isNaN(expr) ? expr : Number(expr) || expr;
+    if (!expr.startsWith('=')) return (expr.trim() === '' || isNaN(expr)) ? expr : Number(expr);
     let f = expr.slice(1).trim().toUpperCase();
     try {
       // SUM(A1:B3)
@@ -126,11 +126,14 @@ function initCalc(container) {
       // Cell references
       f = f.replace(/\b([A-Z]+\d+)\b/g, ref => {
         const v = getCellVal(ref);
-        return typeof v === 'number' ? v : `"${v}"`;
+        return typeof v === 'number' ? v : JSON.stringify(String(v));
       });
+      // Nur Zahlen, Operatoren, Klammern und Text-Literale zulassen — kein beliebiger JS-Code
+      const withoutStrings = f.replace(/"(?:[^"\\]|\\.)*"/g, '0');
+      if (!/^[\d\s.+\-*\/%()<>=!&|?:,]*$/.test(withoutStrings)) return '#ERR';
       // eslint-disable-next-line no-new-func
       const result = Function('"use strict"; return (' + f + ')')();
-      return isNaN(result) ? result : Number(result.toFixed(10));
+      return typeof result === 'number' && isFinite(result) ? Number(result.toFixed(10)) : (typeof result === 'number' ? '#ERR' : result);
     } catch { return '#ERR'; }
   }
 
@@ -144,6 +147,25 @@ function initCalc(container) {
   function refToRC(ref) {
     const m = ref.match(/^([A-Z]+)(\d+)$/);
     return m ? [parseInt(m[2]) - 1, letterToCol(m[1])] : [0, 0];
+  }
+
+  // Abhängige Formeln neu berechnen (mehrere Durchläufe für Ketten wie C1=B1, B1=A1)
+  function recalcFormulas() {
+    for (let pass = 0; pass < 20; pass++) {
+      let changed = false;
+      for (const [k, cell] of Object.entries(cells)) {
+        if (typeof cell.raw !== 'string' || !cell.raw.startsWith('=')) continue;
+        const val = evalFormula(cell.raw);
+        if (val !== cell.val) { cell.val = val; dirty.add(k); changed = true; }
+      }
+      if (!changed) return;
+    }
+    // Nach 20 Durchläufen immer noch Änderungen → Zirkelbezug
+    for (const [k, cell] of Object.entries(cells)) {
+      if (typeof cell.raw === 'string' && cell.raw.startsWith('=') && evalFormula(cell.raw) !== cell.val) {
+        cell.val = '#ZIRKEL'; dirty.add(k);
+      }
+    }
   }
 
   // ── Dirty-cell rendering ──────────────────────────────────────────────────
@@ -174,6 +196,7 @@ function initCalc(container) {
       cells[k] = { raw, val };
     }
     dirty.add(k);
+    recalcFormulas();
     isDirty = true;
     dirtyEl.textContent = '● Ungespeichert';
     scheduleRender();
