@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weg von Windows – Linux-Einstieg Schritt für Schritt</title>
+  <meta name="description" content="Online-Kurs: Vom Windows-Rechner zu Linux. Schritt für Schritt, ohne Vorkenntnisse.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap nav-wrap">
+    <a href="index.html" class="logo">Linux<span>schulung</span></a>
+    <div id="account" class="account"></div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Online-Kurs</p>
+      <h1>Genug von Windows? Gute Entscheidung.</h1>
+      <p class="lead">Ungewollte Updates, Werbung im Startmenü, Rechner, der nach jedem Update langsamer wird. Hier lernst du, wie du Linux installierst und im Alltag sicher damit arbeitest, Schritt für Schritt und ohne Fachchinesisch.</p>
+      <div class="hero-actions">
+        <a href="kurs.html" class="btn btn-primary">Kurs ansehen</a>
+        <a href="#inhalte" class="btn btn-ghost">Was steckt drin?</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="inhalte" class="section">
+    <div class="wrap">
+      <h2>Was dich erwartet</h2>
+      <div id="kurse" class="cards"><p>Lade Kurse …</p></div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="wrap narrow">
+      <h2>Häufige Fragen</h2>
+      <details>
+        <summary>Brauche ich Vorkenntnisse?</summary>
+        <p>Nein. Der Kurs ist für Leute gemacht, die noch nie ein Terminal gesehen haben. Fachbegriffe werden erklärt, bevor sie vorkommen.</p>
+      </details>
+      <details>
+        <summary>Funktioniert Linux auf meinem Rechner?</summary>
+        <p>Die meisten Rechner ja. Die Lektion zur Auswahl zeigt dir, wie du das vor der Installation mit einem USB-Stick ausprobierst, ohne deine Festplatte anzufassen.</p>
+      </details>
+      <details>
+        <summary>Bekomme ich nach dem Kauf sofort Zugang?</summary>
+        <p>Ja. Direkt nach der Zahlung werden die Lektionen für dich freigeschaltet.</p>
+      </details>
+      <details>
+        <summary>Kann ich bei einer Frage nachfragen?</summary>
+        <p>Für Fragen zum Kurs erreichst du uns über die Kontaktdaten im Impressum. Wer lieber direkt vor Ort lernt, bekommt auch Vor-Ort-Tutoring über den Reparaturservice Römmert.</p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-wrap">
+    <span>Linuxschulung</span>
+    <nav class="footer-links">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  // Kurskarten vom Server laden
+  (async () => {
+    const box = document.getElementById("kurse");
+    try {
+      const courses = await api("/api/courses");
+      box.replaceChildren();
+      for (const c of courses) {
+        const list = el("ul", { class: "checklist" });
+        c.highlights.forEach((h) => list.append(el("li", {}, h)));
+        box.append(
+          el("article", { class: "card" },
+            el("h3", {}, c.title),
+            el("p", { class: "muted" }, c.subtitle),
+            el("p", {}, c.description),
+            list,
+            el("p", { class: "price" }, c.price.replace(".", ",") + " € einmalig"),
+            el("a", { class: "btn btn-primary", href: "kurs.html?kurs=" + encodeURIComponent(c.slug) }, "Zum Kurs")
+          )
+        );
+      }
+    } catch (err) {
+      box.textContent = "Die Kurse konnten gerade nicht geladen werden. Bitte lade die Seite neu.";
+    }
+  })();
+</script>
+</body>
+</html>

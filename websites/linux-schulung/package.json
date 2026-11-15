@@ -1,0 +1,17 @@
+{
+  "name": "linux-schulung",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Online-Kurs-Shop für Linux-Einsteiger mit PayPal-Zahlung",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "check": "node --check server.js && node --check lib/auth.js && node --check lib/paypal.js && node --check lib/store.js"
+  },
+  "engines": {
+    "node": ">=22.9"
+  },
+  "dependencies": {
+    "express": "4.21.2"
+  }
+}

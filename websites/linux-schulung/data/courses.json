@@ -1,0 +1,65 @@
+[
+  {
+    "slug": "linux-einstieg",
+    "title": "Vom Windows-Rechner zu Linux",
+    "subtitle": "Der Einstieg ohne Fachchinesisch",
+    "price": "49.00",
+    "currency": "EUR",
+    "description": "Du hast genug von Updates, die im falschen Moment kommen, und von Werbung im Startmenü? Dieser Kurs zeigt dir Schritt für Schritt, wie du Linux installierst, deine Programme findest und dich im Alltag zurechtfindest. Keine Vorkenntnisse nötig.",
+    "highlights": [
+      "Fünf Lektionen, die du in deinem Tempo durcharbeitest",
+      "Auswahl der passenden Linux-Variante für deinen Rechner",
+      "Ersatz für typische Windows-Programme, mit ehrlichen Hinweisen",
+      "Grundlagen für Terminal und Sicherungen, damit nichts verloren geht",
+      "Lebenslanger Zugang zu den Inhalten"
+    ],
+    "lessons": [
+      {
+        "title": "1. Was ist Linux eigentlich?",
+        "paragraphs": [
+          "Linux ist ein Betriebssystem, genau wie Windows oder macOS. Es steuert deinen Rechner, startet Programme und verwaltet deine Dateien. Der Unterschied: Linux ist frei verfügbar, und es gibt nicht ein einziges Linux, sondern viele Varianten, die man Distributionen nennt.",
+          "Eine Distribution besteht aus dem Linux-Kern und einer Auswahl an Programmen, Oberfläche und Einstellungen. Manche sind besonders einsteigerfreundlich, andere eher für Profis gedacht.",
+          "Was du dafür bekommst: keine Lizenzkosten, keine erzwungenen Neustarts mitten in der Arbeit und weniger Werbung im System."
+        ]
+      },
+      {
+        "title": "2. Die passende Variante finden",
+        "paragraphs": [
+          "Für den Einstieg eignen sich besonders Linux Mint und Zorin OS. Beide sehen Windows recht ähnlich und lassen sich ohne Vorwissen bedienen.",
+          "Bevor du irgendetwas installierst, probiere die Variante vom USB-Stick aus (Live-Modus). So siehst du, ob Drucker, WLAN und Bildschirm mitspielen, ohne dass sich auf deiner Festplatte etwas ändert.",
+          "Wichtig: Sichere vor jeder Installation deine Daten. Auch die beste Anleitung ersetzt kein Backup."
+        ]
+      },
+      {
+        "title": "3. Der erste Tag: System aktuell halten",
+        "paragraphs": [
+          "Unter Linux installierst du Programme meist über die Softwareverwaltung, nicht über dubiose Download-Seiten. Das ist sicherer und bequemer.",
+          "Für Systeme auf Debian-Basis (dazu gehören Mint, Ubuntu und Zorin) öffnest du das Terminal und gibst diese Befehle ein. Das Passwort wird beim Tippen nicht angezeigt, das ist normal."
+        ],
+        "code": [
+          "sudo apt update",
+          "sudo apt upgrade"
+        ],
+        "after": [
+          "sudo bedeutet: Dieser Befehl darf Änderungen am System machen. Tippe nur Befehle ein, die du verstanden hast, und kopiere niemals blind fremde Befehle aus dem Netz."
+        ]
+      },
+      {
+        "title": "4. Windows-Programme ersetzen",
+        "paragraphs": [
+          "Für die meisten Aufgaben gibt es gleichwertige Programme. LibreOffice ersetzt Word und Excel, Thunderbird das Mailprogramm, Firefox oder Chromium den Browser, VLC Medien und GIMP oder Inkscape Bildbearbeitung.",
+          "Bei Windows-Programmen, die du unbedingt brauchst, helfen Wine oder Bottles. Ehrlich gesagt klappt das nicht bei allem, und Sonderprogramme wie spezielle Buchhaltungs- oder Steuersoftware sollten vorher getestet werden.",
+          "Für Spiele lohnt sich Steam mit Proton. Viele Spiele laufen darüber inzwischen gut, aber auch hier gilt: Vorher nachschauen, ob dein Lieblingsspiel unterstützt wird."
+        ]
+      },
+      {
+        "title": "5. Sicherungen und Hilfe holen",
+        "paragraphs": [
+          "Ein Backup ist kein Luxus. Richte dir eine Sicherung deiner persönlichen Dateien ein, zum Beispiel auf einer externen Festplatte. Für das ganze System gibt es Timeshift, das regelmäßig Schnappschüsse anlegt.",
+          "Wenn etwas nicht klappt: Kopiere die exakte Fehlermeldung und suche danach. Die großen Linux-Foren und die Dokumentation der jeweiligen Distribution helfen fast immer weiter.",
+          "Du hast noch Fragen? Dann sind wir bei Reparaturservice Römmert auch für Vor-Ort-Tutoring erreichbar."
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kurs – Linuxschulung</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap nav-wrap">
+    <a href="index.html" class="logo">Linux<span>schulung</span></a>
+    <div id="account" class="account"></div>
+  </div>
+</header>
+
+<main class="wrap page">
+  <p><a href="index.html">&larr; Alle Kurse</a></p>
+  <div id="kurs"><p>Lade Kurs …</p></div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-wrap">
+    <span>Linuxschulung</span>
+    <nav class="footer-links">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script>
+  const slug = new URLSearchParams(location.search).get("kurs") || "linux-einstieg";
+  const root = document.getElementById("kurs");
+
+  function showError(text) {
+    root.replaceChildren(el("p", { class: "error" }, text));
+  }
+
+  // Lektionen mit Zugang anzeigen
+  function renderLessons(data) {
+    root.replaceChildren(el("h1", {}, data.title), el("p", { class: "muted" }, "Viel Erfolg! Arbeite die Lektionen in Ruhe durch."));
+    for (const lesson of data.lessons) {
+      const section = el("section", { class: "lesson" }, el("h2", {}, lesson.title));
+      lesson.paragraphs.forEach((p) => section.append(el("p", {}, p)));
+      if (lesson.code && lesson.code.length) {
+        section.append(el("pre", {}, el("code", {}, lesson.code.join("\n"))));
+      }
+      (lesson.after || []).forEach((p) => section.append(el("p", { class: "note" }, p)));
+      root.append(section);
+    }
+  }
+
+  // Kaufbereich: Hinweise + PayPal-Buttons
+  function renderBuy(course) {
+    const agb = el("input", { type: "checkbox", id: "agb" });
+    const widerruf = el("input", { type: "checkbox", id: "widerruf" });
+    const msg = el("p", { class: "error", id: "buymsg", role: "status" });
+    const buttons = el("div", { id: "paypal-buttons", class: "paypal-box" });
+
+    root.replaceChildren(
+      el("h1", {}, course.title),
+      el("p", { class: "muted" }, course.subtitle),
+      el("p", {}, course.description),
+      el("ul", { class: "checklist" }, ...course.highlights.map((h) => el("li", {}, h))),
+      el("p", { class: "price" }, course.price.replace(".", ",") + " € einmalig"),
+      el("div", { class: "buy-box" },
+        el("label", { class: "check" }, agb,
+          el("span", {}, " Ich habe die ", el("a", { href: "impressum.html" }, "AGB"), " gelesen und akzeptiere sie.")),
+        el("label", { class: "check" }, widerruf,
+          el("span", {}, " Ich stimme zu, dass der Kurs sofort freigeschaltet wird. Dabei verliere ich mein Widerrufsrecht, sobald der Zugang vollständig freigeschaltet ist. [Textvorlage: bitte rechtlich prüfen lassen.]")),
+        msg,
+        buttons
+      )
+    );
+
+    // Erst zahlen, wenn beide Hinweise angehakt sind.
+    const hasConsent = () => agb.checked && widerruf.checked;
+    msg.textContent = "Bitte bestätige oben die beiden Hinweise, dann erscheinen die Zahlungsbuttons.";
+
+    loadPayPal(course, buttons, msg, hasConsent, [agb, widerruf]);
+  }
+
+  let paypalLoaded = null;
+  function loadPayPal(course, container, msg, hasConsent, checkboxes) {
+    api("/api/config").then((cfg) => {
+      if (!cfg.paypalClientId) {
+        msg.textContent = "Die Zahlung ist noch nicht eingerichtet. Bitte später erneut versuchen.";
+        return;
+      }
+      const start = () => {
+        container.replaceChildren();
+        window.paypal.Buttons({
+          style: { layout: "vertical", shape: "pill", label: "pay" },
+          onClick: (data, actions) => {
+            if (!hasConsent()) {
+              msg.textContent = "Bitte bestätige zuerst die beiden Hinweise.";
+              return actions.reject();
+            }
+            msg.textContent = "";
+            return actions.resolve();
+          },
+          createOrder: async () => {
+            const data = await api("/api/paypal/orders", {
+              method: "POST",
+              body: { courseSlug: course.slug, agb: true, widerruf: true },
+            });
+            return data.id;
+          },
+          onApprove: async (data) => {
+            msg.textContent = "Zahlung wird bestätigt …";
+            try {
+              await api(`/api/paypal/orders/${encodeURIComponent(data.orderID)}/capture`, { method: "POST", body: {} });
+              location.href = "kurs.html?kurs=" + encodeURIComponent(course.slug) + "&gekauft=1";
+            } catch (err) {
+              msg.textContent = err.message;
+            }
+          },
+          onError: (err) => {
+            console.error(err);
+            msg.textContent = "Bei der Zahlung ist ein Fehler aufgetreten. Dir wurde nichts berechnet, bitte versuche es erneut.";
+          },
+        }).render("#paypal-buttons");
+      };
+      if (window.paypal) return start();
+      if (!paypalLoaded) {
+        paypalLoaded = new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(cfg.paypalClientId)}&currency=${course.currency}&intent=capture`;
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.append(s);
+        });
+      }
+      paypalLoaded.then(start).catch(() => {
+        msg.textContent = "PayPal konnte nicht geladen werden. Bitte Seite neu laden.";
+      });
+    }).catch(() => {
+      msg.textContent = "Die Einstellungen konnten nicht geladen werden.";
+    });
+  }
+
+  (async () => {
+    try {
+      const me = await api("/api/me");
+      const course = (await api("/api/courses")).find((c) => c.slug === slug);
+      if (!course) return showError("Diesen Kurs gibt es nicht.");
+
+      if (me.user && me.courses.includes(slug)) {
+        const data = await api(`/api/courses/${encodeURIComponent(slug)}/lessons`);
+        renderLessons(data);
+        return;
+      }
+      if (!me.user) {
+        root.replaceChildren(
+          el("h1", {}, course.title),
+          el("p", {}, course.description),
+          el("p", {}, "Zum Kaufen brauchst du ein Konto. Das dauert eine Minute."),
+          el("a", { class: "btn btn-primary", href: "login.html?weiter=" + encodeURIComponent("kurs.html?kurs=" + slug) }, "Anmelden oder Konto anlegen")
+        );
+        return;
+      }
+      if (location.search.includes("gekauft=1")) {
+        root.append(el("p", { class: "ok" }, "Danke für deinen Kauf! Der Zugang wird gerade freigeschaltet."));
+      }
+      renderBuy(course);
+    } catch (err) {
+      showError("Die Seite konnte nicht geladen werden: " + err.message);
+    }
+  })();
+</script>
+</body>
+</html>
