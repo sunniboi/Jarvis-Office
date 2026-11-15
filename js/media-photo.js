@@ -479,7 +479,7 @@ const JMPhoto = (() => {
     // Speichern
     function outName(type) {
       const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[type];
-      return name.replace(/\.[^.]+$/, '') + ' – bearbeitet.' + ext;
+      return name.replace(/\.[^.]+$/, '') + ' - bearbeitet.' + ext;
     }
     function toBlob(image, adj, type, quality, width) {
       const c = render(image, adj, { outWidth: width || 0 });
@@ -523,7 +523,7 @@ const JMPhoto = (() => {
       adj.auto = autoFor(image, adj);
       adj.saturation = 8; adj.sharpen = 15;
       const blob = await toBlob(image, adj, 'image/jpeg', 0.92, 0);
-      return upload(blob, item.name.replace(/\.[^.]+$/, '') + ' – Auto.jpg');
+      return upload(blob, item.name.replace(/\.[^.]+$/, '') + ' - Auto.jpg');
     }
 
     return { open, pickLocal, autoSave };

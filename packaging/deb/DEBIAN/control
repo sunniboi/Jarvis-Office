@@ -1,0 +1,25 @@
+Package: jarvis-office
+Version: 2.1
+Section: office
+Priority: optional
+Architecture: all
+Depends: xdg-utils, python3 (>= 3.8), ffmpeg
+Recommends: chromium-browser | chromium | google-chrome-stable | firefox, fontconfig
+Installed-Size: 600
+Maintainer: Jarvis Office <sunniboi@freenet.de>
+Homepage: https://github.com/sunniboi/Jarvis-Office
+Description: Jarvis Office — Office-Suite mit Video- und Fotostudio
+ Jarvis Office ist eine lokale Office-Suite mit 9 Anwendungen:
+  * Jarvis Write    — Textverarbeitung mit Rich-Text-Editor
+  * Jarvis Calc     — Tabellenkalkulation mit Formel-Engine
+  * Jarvis Matrix   — Smart-Tabellen
+  * Jarvis Draw     — Vektorgrafik-Editor
+  * Jarvis Present  — Präsentationseditor mit Vollbild-Modus
+  * Jarvis Mail     — E-Mail-Client (offline)
+  * Jarvis Notes    — Schnellnotizen mit Auto-Save
+  * Jarvis Calendar — Kalender mit ICS Import/Export
+  * Jarvis Studio   — Videoschnitt, Foto-Editor, GIFs, Automatik und Teilen
+ .
+ Läuft lokal im Browser. Jarvis Studio nutzt einen kleinen lokalen Dienst
+ (Python + ffmpeg), der nur auf 127.0.0.1 lauscht. Medien liegen in ~/JarvisMedia.
+ Internet braucht nur die optionale KI-Regie (eigener Anthropic-API-Schlüssel).

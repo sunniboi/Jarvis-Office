@@ -65,7 +65,7 @@ const JMVideo = (() => {
         </div>
         <aside class="jm-panel">
           <details open><summary>KI-Regie</summary>
-            <textarea id="jv-prompt" rows="3" placeholder="Sag, was aus dem Video werden soll – z. B. „Pausen raus, 60 Sekunden, hochkant für TikTok, Titel: &quot;Läuft wieder&quot;“"></textarea>
+            <textarea id="jv-prompt" rows="3" placeholder="Was soll aus dem Video werden? Z. B. „Pausen raus, 60 Sekunden, hochkant für TikTok, Titel: &quot;Läuft wieder&quot;“"></textarea>
             <div class="jm-row">
               <button class="btn btn-primary btn-sm" id="jv-ai-plan">Schnitt vorschlagen</button>
               <button class="btn btn-ghost btn-sm" id="jv-ai-run">Direkt fertig machen</button>
@@ -293,7 +293,7 @@ const JMVideo = (() => {
 
     function updateClock() {
       const tot = total();
-      $p('#jv-time').textContent = `${jmDur(T).replace('.', ',')} / ${jmDur(tot).replace('.', ',')}`;
+      $p('#jv-time').textContent = `${jmDur(T)} / ${jmDur(tot)}`;
       playhead.style.left = T * pps + 'px';
       const end = p.text.end > p.text.start ? p.text.end : tot;
       $p('#jv-text').classList.toggle('hidden', !(p.text.content && T >= p.text.start && T <= end));
@@ -371,7 +371,7 @@ const JMVideo = (() => {
       const steps = [0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600];
       const step = steps.find(x => x * pps >= 70) || 7200;
       let marks = '';
-      for (let t = 0; t <= tot + 1e-6 && marks.length < 40000; t += step) marks += `<span style="left:${t * pps}px">${jmDur(t).replace(/\.\d$/, '')}</span>`;
+      for (let t = 0; t <= tot + 1e-6 && marks.length < 40000; t += step) marks += `<span style="left:${t * pps}px">${jmDur(t).replace(/,\d$/, '')}</span>`;
       ruler.innerHTML = marks;
       updateClock();
     }

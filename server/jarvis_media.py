@@ -1233,7 +1233,7 @@ def auto_job(job, iid, prompt, recipe, run):
     pre = PRESET[recipe['preset']]
     stem = os.path.splitext(item['name'])[0]
     project = {
-        'name': f'{stem} – Auto',
+        'name': f'{stem} - Auto',
         'segments': [{'src': item['id'], 'start': s, 'end': e, 'speed': recipe['speed'], 'volume': 1} for s, e in keep],
         'format': {'preset': pre['key'], 'width': pre['w'], 'height': pre['h'], 'fit': recipe['fit'] or pre['fit']},
         'look': {'brightness': 0, 'contrast': 1, 'saturation': 1, 'rotate': recipe['rotate'], 'flipH': False,
@@ -1963,7 +1963,69 @@ def ensure():
     return 1
 
 
+def cli_auto(argv):
+    """Ohne Oberfläche: jarvis_media.py --auto DATEI [--prompt TEXT] [--out ORDNER] [--plan]"""
+    global ROOT, LIB, EXP, CACHE, STATE, CONFIG, _index
+
+    def opt(name, default=None):
+        return argv[argv.index(name) + 1] if name in argv and argv.index(name) + 1 < len(argv) else default
+
+    src = Path(opt('--auto') or '').expanduser().resolve()
+    if not src.is_file():
+        print(f'Datei nicht gefunden: {src}', file=sys.stderr)
+        return 2
+    if not (have('ffmpeg') and have('ffprobe')):
+        print('ffmpeg/ffprobe fehlen. Installieren mit: sudo apt install ffmpeg', file=sys.stderr)
+        return 2
+    keep_cfg = CONFIG
+    ROOT = Path(opt('--out') or 'JarvisMedia').expanduser().resolve()
+    LIB, EXP, CACHE, STATE = ROOT / 'Bibliothek', ROOT / 'Exporte', ROOT / '.cache', ROOT / '.server.json'
+    CONFIG = keep_cfg if keep_cfg.exists() else ROOT / '.config.json'      # KI-Schlüssel der Oberfläche mitnutzen
+    _index = None
+    ensure_dirs()
+    link = LIB / safe_name(src.name)
+    if not link.exists():
+        try:
+            link.symlink_to(src)
+        except OSError:
+            shutil.copy2(src, link)
+    item = build_item('lib', link)
+    if not item:
+        print('Das ist keine lesbare Video-, Bild- oder Tondatei.', file=sys.stderr)
+        return 2
+    job = Job('auto', 'Automatik')
+    done = threading.Event()
+
+    def show():
+        while not done.wait(2):
+            print(f'  {job.progress * 100:5.1f} %  {job.message}', file=sys.stderr, flush=True)
+
+    threading.Thread(target=show, daemon=True).start()
+    try:
+        res = auto_job(job, item['id'], opt('--prompt', ''), None, '--plan' not in argv)
+    except Exception as e:  # noqa: BLE001
+        print(f'Fehler: {e}', file=sys.stderr)
+        return 1
+    finally:
+        done.set()
+        if job.tmp:
+            shutil.rmtree(job.tmp, ignore_errors=True)
+    out = {'notes': res['notes'], 'source': res['source'], 'clips': res['clips'],
+           'kept_seconds': res['kept'], 'removed_seconds': res['removed']}
+    if res.get('item'):
+        out['output'] = str(EXP / res['item']['name'])
+        out.update({k: res['item'].get(k) for k in ('duration', 'width', 'height', 'size')})
+    else:
+        out['segments'] = [[s['start'], s['end']] for s in res['project']['segments']]
+    if res.get('caption'):
+        out['caption'], out['hashtags'] = res['caption'], res['hashtags']
+    print(json.dumps(out, ensure_ascii=False, indent=2))
+    return 0
+
+
 if __name__ == '__main__':
+    if '--auto' in sys.argv:
+        sys.exit(cli_auto(sys.argv))
     if '--ensure' in sys.argv:
         sys.exit(ensure())
     serve()

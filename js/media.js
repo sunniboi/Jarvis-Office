@@ -51,7 +51,7 @@ const JM = (() => {
 function jmDur(s) {
   s = Math.max(0, Number(s) || 0);
   const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60;
-  const sec = (s < 60 ? r.toFixed(1) : String(Math.floor(r))).padStart(s < 60 ? 4 : 2, '0');
+  const sec = (s < 60 ? r.toFixed(1).replace('.', ',') : String(Math.floor(r))).padStart(s < 60 ? 4 : 2, '0');
   return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
 }
 function jmSize(b) {
@@ -375,7 +375,7 @@ function initMedia(container) {
     const modal = showModal(`
       <h3>Automatik: ${sanitize(item.name)}</h3>
       <p class="jm-hint">${ai
-        ? 'Die KI plant den Schnitt nach deinem Wunsch. Dafür gehen Dateiname, Messwerte und ein paar kleine Standbilder an Anthropic – nie das ganze Video.'
+        ? 'Die KI plant den Schnitt nach Wunsch. Dafür gehen Dateiname, Messwerte und ein paar kleine Standbilder an Anthropic – nie das ganze Video.'
         : 'Ohne KI-Schlüssel versteht die Automatik feste Stichwörter (Plattform, Länge, GIF, stumm, stabilisieren …). Freie Wünsche gehen mit KI-Schlüssel unter „KI & Einstellungen“.'}</p>
       <div class="form-group">
         <label for="jm-auto-text">Was soll aus dem Video werden?</label>
@@ -598,7 +598,7 @@ function initMedia(container) {
     showModal(`
       <h3>KI & Einstellungen</h3>
       <p class="jm-hint">Mit einem Anthropic-API-Schlüssel versteht die Automatik freie Wünsche, sieht sich Standbilder an und schreibt Beitragstexte.
-        Der Schlüssel bleibt auf diesem Rechner (<code>${sanitize(i.root)}/.config.json</code>). Die Nutzung der API kostet Geld und wird über dein Anthropic-Konto abgerechnet.</p>
+        Der Schlüssel bleibt auf diesem Rechner (<code>${sanitize(i.root)}/.config.json</code>). Die Nutzung der API kostet Geld und wird über das eigene Anthropic-Konto abgerechnet.</p>
       <div class="form-group">
         <label for="jm-key">API-Schlüssel ${i.ai ? '(ist hinterlegt – leer lassen, um ihn zu behalten)' : '(noch keiner hinterlegt)'}</label>
         <input type="text" id="jm-key" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" />

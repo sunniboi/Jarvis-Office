@@ -1,0 +1,57 @@
+#!/bin/bash
+# Jarvis Office Starter
+# Startet bei Bedarf den lokalen Medien-Dienst (Jarvis Studio) und öffnet Jarvis Office im Browser.
+
+APP_DIR="${JARVIS_OFFICE_DIR:-/usr/share/jarvis-office}"
+INDEX="$APP_DIR/index.html"
+
+if [ ! -f "$INDEX" ]; then
+    echo "Fehler: Jarvis Office Dateien nicht gefunden unter $APP_DIR" >&2
+    exit 1
+fi
+
+# Medien-Dienst: gibt "PORT TOKEN" aus. Ohne python3/ffmpeg läuft das Office trotzdem,
+# nur Videoschnitt, Automatik und Teilen fehlen dann.
+HASH=""
+if command -v python3 >/dev/null 2>&1 && [ -f "$APP_DIR/server/jarvis_media.py" ]; then
+    if ! command -v ffmpeg >/dev/null 2>&1; then
+        echo "Hinweis: ffmpeg fehlt – Videoschnitt ist nicht verfügbar (sudo apt install ffmpeg)." >&2
+    fi
+    if CONN=$(python3 "$APP_DIR/server/jarvis_media.py" --ensure); then
+        HASH="#jm=${CONN%% *}.${CONN##* }"
+    else
+        echo "Hinweis: Der Medien-Dienst ist nicht gestartet – Jarvis Studio läuft eingeschränkt." >&2
+    fi
+fi
+URL="file://$INDEX$HASH"
+
+# Browser-Reihenfolge: Chromium-App-Modus bevorzugt (kein Browser-Chrome = sauberes Fenster)
+launch_chromium_app() {
+    local bin="$1"
+    "$bin" --app="$URL" \
+           --window-size=1400,900 \
+           --user-data-dir="$HOME/.config/jarvis-office" \
+           --no-first-run \
+           --disable-translate \
+           --noerrdialogs \
+           2>/dev/null &
+}
+
+if command -v chromium-browser >/dev/null 2>&1; then
+    launch_chromium_app chromium-browser
+elif command -v chromium >/dev/null 2>&1; then
+    launch_chromium_app chromium
+elif command -v google-chrome-stable >/dev/null 2>&1; then
+    launch_chromium_app google-chrome-stable
+elif command -v google-chrome >/dev/null 2>&1; then
+    launch_chromium_app google-chrome
+elif command -v firefox >/dev/null 2>&1; then
+    firefox "$URL" 2>/dev/null &
+elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$URL" 2>/dev/null &
+else
+    echo "Kein Browser gefunden. Bitte öffne manuell: $URL" >&2
+    exit 1
+fi
+
+exit 0
