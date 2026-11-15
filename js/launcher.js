@@ -9,6 +9,7 @@ const APPS = {
   mail:     { name: 'Jarvis Mail',     desc: 'E-Mail-Client',        color: 'var(--app-mail)',     init: (c) => initMail(c) },
   notes:    { name: 'Jarvis Notes',    desc: 'Schnellnotizen',       color: 'var(--app-notes)',    init: (c) => initNotes(c) },
   calendar: { name: 'Jarvis Calendar', desc: 'Kalender & Termine',   color: 'var(--app-calendar)', init: (c) => initCalendar(c) },
+  media:    { name: 'Jarvis Studio',   desc: 'Video, Foto, GIF & Teilen', color: 'var(--app-media)',  init: (c) => initMedia(c) },
 };
 
 // App icons as SVG paths (color inherits from parent)
@@ -20,6 +21,7 @@ const APP_ICONS = {
   present:  '<rect x="3" y="5" width="18" height="13" rx="2" stroke-width="1.5"/><line x1="12" y1="18" x2="12" y2="22" stroke-width="1.5"/><line x1="8" y1="22" x2="16" y2="22" stroke-width="1.5"/>',
   mail:     '<rect x="2" y="5" width="20" height="14" rx="2" stroke-width="1.5"/><polyline points="2,7 12,14 22,7" stroke-width="1.5"/>',
   notes:    '<path d="M11 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" stroke-width="1.5"/><polyline points="13,2 13,9 20,9" stroke-width="1.5"/><line x1="9" y1="13" x2="15" y2="13" stroke-width="1.5"/><line x1="9" y1="17" x2="13" y2="17" stroke-width="1.5"/>',
+  media:    '<rect x="2.5" y="5" width="13" height="14" rx="2" stroke-width="1.5"/><path d="M15.5 10l6-3.5v11l-6-3.5z" stroke-width="1.5" stroke-linejoin="round"/>',
   calendar: '<rect x="3" y="4" width="18" height="18" rx="2" stroke-width="1.5"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="1.5"/>',
 };
 
