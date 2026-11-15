@@ -6,6 +6,14 @@ Folgende Skills werden **sofort** aufgerufen, sobald die entsprechenden Schlüss
 
 ---
 
+### Auto-Router (`auto-router`)
+**Aufrufen wenn:**
+- kein einzelner Skill unten eindeutig passt oder die Aufgabe mehrere Skills braucht
+- "ich brauche", "mach mir", "kümmere dich um", "bau mir das komplett"
+- jede nicht triviale Aufgabe: bester Skill wird gesucht, Agenten-Team (`arbeiter`, `pruefer`) arbeitet parallel und prüft sich gegenseitig
+
+---
+
 ### Deep Research (`anthropic-skills:deep-research`)
 **Aufrufen wenn:**
 - "recherchiere", "recherchier mal", "forsch nach"
