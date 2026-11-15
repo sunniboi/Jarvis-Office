@@ -1,6 +1,6 @@
 ---
 name: pruefer
-description: Prüft das Ergebnis eines anderen Agenten unabhängig gegen und vergleicht es mit einem zweiten Ergebnis. Ändert selbst nichts. Wird vom auto-router nach jeder Arbeitsrunde gestartet.
+description: Prüft das Ergebnis eines anderen Agenten unabhängig gegen und vergleicht es mit einem zweiten Ergebnis. Ändert selbst nichts. Wird vom jarvis-agenten-office nach jeder Arbeitsrunde gestartet.
 tools: Read, Grep, Glob, Bash
 ---
 

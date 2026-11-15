@@ -1,5 +1,5 @@
 #!/bin/bash
-# Installiert Auto-Router-Skill und Agenten benutzerweit (~/.claude), damit sie in jedem Projekt gelten.
+# Installiert Jarvis Agenten Office (Skill und Agenten) benutzerweit (~/.claude), damit sie in jedem Projekt gelten.
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.claude"

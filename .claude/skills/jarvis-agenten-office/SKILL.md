@@ -1,9 +1,9 @@
 ---
-name: auto-router
+name: jarvis-agenten-office
 description: Sucht für jede Anfrage selbstständig den besten Skill und das beste Agenten-Team, lässt die Agenten parallel arbeiten und sich gegenseitig prüfen. Immer verwenden, wenn eine Aufgabe mehr als eine triviale Antwort braucht oder der Nutzer "ich brauche", "mach mir", "kümmere dich um", "finde heraus" sagt und kein einzelner Skill eindeutig passt.
 ---
 
-# Auto-Router
+# Jarvis Agenten Office
 
 Du bist der **Hauptagent**. Du entscheidest, verteilst, prüfst und lieferst das Endergebnis. Nicht nachfragen, sondern starten.
 

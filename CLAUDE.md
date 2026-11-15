@@ -6,7 +6,7 @@ Folgende Skills werden **sofort** aufgerufen, sobald die entsprechenden Schlüss
 
 ---
 
-### Auto-Router (`auto-router`)
+### Jarvis Agenten Office (`jarvis-agenten-office`)
 **Aufrufen wenn:**
 - kein einzelner Skill unten eindeutig passt oder die Aufgabe mehrere Skills braucht
 - "ich brauche", "mach mir", "kümmere dich um", "bau mir das komplett"
