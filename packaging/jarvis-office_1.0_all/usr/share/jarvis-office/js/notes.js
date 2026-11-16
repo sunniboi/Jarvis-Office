@@ -1,190 +1,176 @@
-// ===== JARVIS NOTES =====
+/* ===== JARVIS OFFICE v2 — NOTES ===== */
 
 function initNotes(container) {
   let notes = JarvisDB.get('notes_list', []);
-  let activeId = null;
+  let selectedId = null;
+  let saveTimer = null;
 
   if (!notes.length) {
-    notes = [
-      { id: 'n1', title: 'Willkommen bei Jarvis Notes', content: 'Hier kannst du schnelle Notizen erstellen und organisieren.\n\n• Neue Notiz: Klick auf + oben links\n• Löschen: Rechtsklick auf Notiz\n• Suche: Suchfeld oben\n\nViel Spaß!', date: Date.now(), pinned: true },
-      { id: 'n2', title: 'Ideen', content: '- Neue App-Idee\n- Feature für Jarvis Matrix\n- Farb-Theme überarbeiten', date: Date.now()-3600000, pinned: false },
-    ];
-    saveNotes();
+    notes = [{ id: JarvisDB.genId(), title: 'Erste Notiz', content: 'Hier steht deine erste Notiz.', modified: Date.now(), pinned: false }];
+    persist();
   }
 
+  function persist() { JarvisDB.set('notes_list', notes); }
+
+  // ── DOM ──────────────────────────────────────────────────────────────────
   container.innerHTML = `
-    <div class="app-titlebar">
-      <button class="back-btn" onclick="goHome()">←</button>
-      <span class="app-title" style="color:var(--notes)">📋 Jarvis Notes</span>
-      <div class="titlebar-actions">
-        <button class="tb-btn" onclick="notesNew()">+ Neue Notiz</button>
-        <button class="tb-btn" onclick="notesExportAll()">⬇ Alle exportieren</button>
-        <select class="tb-select" id="notes-sort" onchange="notesSortChange(this.value)" style="width:110px">
-          <option value="date">Nach Datum</option>
-          <option value="title">Nach Titel</option>
-          <option value="pinned">Angeheftet</option>
-        </select>
-      </div>
-    </div>
-    <div class="notes-layout">
-      <div class="notes-list">
-        <div class="notes-list-header">
-          <input class="notes-search" id="notes-search" placeholder="🔍 Suchen..." oninput="notesSearch(this.value)" />
-          <button onclick="notesNew()" style="background:var(--accent);border:none;color:#fff;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">+</button>
+    <div class="app-chrome notes-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title">Jarvis Notes</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-primary btn-sm" id="notes-new">${icon('plus', 15)} Neue Notiz</button>
         </div>
-        <div class="notes-items" id="notes-items"></div>
       </div>
-      <div class="notes-editor" id="notes-editor">
-        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);">Wähle eine Notiz oder erstelle eine neue.</div>
+      <div class="notes-layout">
+        <div class="notes-sidebar">
+          <div class="notes-search-wrap">
+            <input type="search" id="notes-search" placeholder="Suchen…" aria-label="Notizen durchsuchen" />
+          </div>
+          <div class="notes-list" id="notes-list" role="list" aria-label="Notizen"></div>
+        </div>
+        <div class="notes-editor-area">
+          <div class="notes-toolbar">
+            <input type="text" id="notes-title-in" class="notes-title-in" placeholder="Titel" aria-label="Notiz-Titel" />
+            <button class="btn-icon" id="notes-pin" title="Anheften">${icon('pin', 16)}</button>
+            <button class="btn-icon" id="notes-delete" title="Löschen">${icon('trash', 16)}</button>
+            <button class="btn btn-ghost btn-sm" id="notes-export">${icon('download', 14)} TXT</button>
+          </div>
+          <textarea id="notes-content" class="notes-content" placeholder="Notiz beginnen…" aria-label="Notizinhalt"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="statusbar">
-      <span id="notes-count">Notizen: ${notes.length}</span>
-      <span id="notes-chars"></span>
-      <span style="margin-left:auto" id="notes-saved"></span>
+      <div class="statusbar">
+        <span id="notes-count">0 Notizen</span>
+        <span id="notes-saved"></span>
+      </div>
     </div>
   `;
 
-  let sortMode = 'date';
-  let searchQ = '';
+  const listEl    = container.querySelector('#notes-list');
+  const titleIn   = container.querySelector('#notes-title-in');
+  const contentEl = container.querySelector('#notes-content');
+  const searchEl  = container.querySelector('#notes-search');
+  const countEl   = container.querySelector('#notes-count');
+  const savedEl   = container.querySelector('#notes-saved');
+  const pinBtn    = container.querySelector('#notes-pin');
 
-  function getFiltered() {
-    let list = [...notes];
-    if (searchQ) list = list.filter(n => n.title.toLowerCase().includes(searchQ) || n.content.toLowerCase().includes(searchQ));
-    if (sortMode === 'date') list.sort((a,b) => b.date - a.date);
-    else if (sortMode === 'title') list.sort((a,b) => a.title.localeCompare(b.title));
-    else if (sortMode === 'pinned') list.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0) || b.date - a.date);
-    return list;
-  }
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function currentNote() { return notes.find(n => n.id === selectedId) || null; }
 
-  function renderList() {
-    const items = document.getElementById('notes-items');
-    const list = getFiltered();
-    items.innerHTML = list.length ? list.map(n => `
-      <div class="note-item${n.id === activeId ? ' active' : ''}" onclick="notesOpen('${n.id}')" oncontextmenu="notesContext(event,'${n.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span class="note-item-title">${n.pinned ? '📌 ' : ''}${sanitize(n.title)}</span>
-        </div>
-        <div class="note-item-preview">${sanitize((n.content||'').split('\n')[0]).substring(0,60)}</div>
-        <div class="note-item-date">${new Date(n.date).toLocaleDateString('de-DE')} ${new Date(n.date).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</div>
-      </div>
-    `).join('') : '<div style="padding:16px;color:var(--text3);font-size:12px;text-align:center;">Keine Notizen gefunden.</div>';
-    document.getElementById('notes-count').textContent = `Notizen: ${notes.length}`;
-  }
-
-  function renderEditor(id) {
-    const note = notes.find(n => n.id === id);
-    const editor = document.getElementById('notes-editor');
-    if (!note) { editor.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);">Wähle eine Notiz.</div>'; return; }
-
-    editor.innerHTML = `
-      <div style="display:flex;align-items:center;border-bottom:1px solid var(--border);padding:8px 12px;gap:8px;">
-        <input class="notes-title-input" id="note-title" value="${sanitize(note.title)}" placeholder="Titel..." style="padding:8px 0;" />
-        <button onclick="notesTogglePin('${id}')" class="btn btn-ghost" style="font-size:12px;white-space:nowrap;">${note.pinned ? '📌 Lösen' : '📌 Anheften'}</button>
-        <button onclick="notesDelete('${id}')" class="btn btn-ghost" style="font-size:12px;color:var(--danger)">🗑</button>
-        <button onclick="notesExport('${id}')" class="btn btn-ghost" style="font-size:12px">⬇</button>
-      </div>
-      <div class="notes-body">
-        <textarea class="notes-textarea" id="note-body" placeholder="Notiz hier eingeben...">${sanitize(note.content||'')}</textarea>
-      </div>
-    `;
-
-    const titleInput = document.getElementById('note-title');
-    const bodyInput = document.getElementById('note-body');
-
-    const save = debounce(() => {
-      note.title = titleInput.value;
-      note.content = bodyInput.value;
-      note.date = Date.now();
-      saveNotes();
-      renderList();
-      document.getElementById('notes-saved').textContent = '✓ Auto-gespeichert ' + formatTime();
-      document.getElementById('notes-chars').textContent = `Zeichen: ${bodyInput.value.length} | Wörter: ${bodyInput.value.trim() ? bodyInput.value.trim().split(/\s+/).length : 0}`;
-    }, 500);
-
-    titleInput.addEventListener('input', save);
-    bodyInput.addEventListener('input', save);
-
-    // Keyboard shortcuts
-    bodyInput.addEventListener('keydown', e => {
-      if (e.ctrlKey && e.key === 's') { e.preventDefault(); save.flush?.(); saveNotes(); showNotify('Gespeichert.', 'success'); }
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        const start = bodyInput.selectionStart;
-        const end = bodyInput.selectionEnd;
-        bodyInput.value = bodyInput.value.substring(0,start) + '  ' + bodyInput.value.substring(end);
-        bodyInput.selectionStart = bodyInput.selectionEnd = start + 2;
-      }
+  function sorted(list) {
+    return [...list].sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return b.modified - a.modified;
     });
-
-    bodyInput.focus();
-    document.getElementById('notes-chars').textContent = `Zeichen: ${(note.content||'').length}`;
   }
 
-  window.notesOpen = (id) => { activeId = id; renderList(); renderEditor(id); };
+  function filtered(q) {
+    if (!q) return sorted(notes);
+    const lq = q.toLowerCase();
+    return sorted(notes.filter(n => n.title.toLowerCase().includes(lq) || n.content.toLowerCase().includes(lq)));
+  }
 
-  window.notesNew = () => {
-    const note = { id: 'n'+Date.now(), title: 'Neue Notiz', content: '', date: Date.now(), pinned: false };
-    notes.unshift(note);
-    saveNotes();
-    notesOpen(note.id);
-  };
+  // ── Render list ───────────────────────────────────────────────────────────
+  function renderList(q = '') {
+    const vis = filtered(q);
+    listEl.innerHTML = '';
+    countEl.textContent = `${notes.length} Notiz${notes.length !== 1 ? 'en' : ''}`;
+    vis.forEach(n => {
+      const div = document.createElement('div');
+      div.className = 'note-item' + (n.id === selectedId ? ' active' : '') + (n.pinned ? ' pinned' : '');
+      div.setAttribute('role', 'listitem');
+      div.setAttribute('tabindex', '0');
+      div.innerHTML = `
+        <div class="note-item-title">${sanitize(n.title) || '(kein Titel)'}${n.pinned ? ' ' + icon('pin', 11) : ''}</div>
+        <div class="note-item-preview">${sanitize(n.content.slice(0, 60))}</div>
+        <div class="note-item-date">${formatDate(new Date(n.modified))}</div>
+      `;
+      div.addEventListener('click', () => selectNote(n.id));
+      div.addEventListener('keydown', e => { if (e.key === 'Enter') selectNote(n.id); });
+      listEl.appendChild(div);
+    });
+  }
 
-  window.notesDelete = (id) => {
+  // ── Select note ───────────────────────────────────────────────────────────
+  function selectNote(id) {
+    selectedId = id;
+    const n = currentNote();
+    if (!n) return;
+    titleIn.value    = n.title;
+    contentEl.value  = n.content;
+    pinBtn.classList.toggle('active', !!n.pinned);
+    renderList(searchEl.value);
+    contentEl.focus();
+  }
+
+  // ── Auto-save ─────────────────────────────────────────────────────────────
+  function scheduleAutoSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 1000);
+  }
+
+  function doSave() {
+    const n = currentNote();
+    if (!n) return;
+    n.title    = titleIn.value;
+    n.content  = contentEl.value;
+    n.modified = Date.now();
+    persist();
+    savedEl.textContent = 'Gespeichert';
+    setTimeout(() => { savedEl.textContent = ''; }, 1500);
+    renderList(searchEl.value);
+  }
+
+  titleIn.addEventListener('input',   scheduleAutoSave);
+  contentEl.addEventListener('input', scheduleAutoSave);
+
+  // ── New note ──────────────────────────────────────────────────────────────
+  function newNote() {
+    const n = { id: JarvisDB.genId(), title: 'Neue Notiz', content: '', modified: Date.now(), pinned: false };
+    notes.unshift(n);
+    persist();
+    selectNote(n.id);
+    titleIn.select();
+  }
+
+  // ── Delete ────────────────────────────────────────────────────────────────
+  function deleteNote() {
+    if (!selectedId) return;
     if (!confirm('Notiz löschen?')) return;
-    notes = notes.filter(n => n.id !== id);
-    if (activeId === id) { activeId = notes[0]?.id || null; renderEditor(activeId); }
-    saveNotes();
-    renderList();
-  };
+    notes = notes.filter(n => n.id !== selectedId);
+    persist();
+    selectedId = notes.length ? notes[0].id : null;
+    if (selectedId) selectNote(selectedId);
+    else { titleIn.value = ''; contentEl.value = ''; renderList(); }
+  }
 
-  window.notesTogglePin = (id) => {
-    const note = notes.find(n => n.id === id);
-    if (note) { note.pinned = !note.pinned; saveNotes(); renderList(); renderEditor(id); }
-  };
+  // ── Pin ───────────────────────────────────────────────────────────────────
+  function togglePin() {
+    const n = currentNote();
+    if (!n) return;
+    n.pinned = !n.pinned;
+    n.modified = Date.now();
+    persist();
+    pinBtn.classList.toggle('active', n.pinned);
+    renderList(searchEl.value);
+  }
 
-  window.notesSearch = (q) => { searchQ = q.toLowerCase(); renderList(); };
+  // ── Export ────────────────────────────────────────────────────────────────
+  container.querySelector('#notes-export').addEventListener('click', () => {
+    const n = currentNote();
+    if (!n) return;
+    downloadFile(n.title + '\n' + '='.repeat(n.title.length) + '\n\n' + n.content,
+      (n.title || 'Notiz') + '.txt', 'text/plain');
+  });
 
-  window.notesSortChange = (mode) => { sortMode = mode; renderList(); };
+  // ── Wiring ────────────────────────────────────────────────────────────────
+  container.querySelector('#notes-new').addEventListener('click', newNote);
+  container.querySelector('#notes-delete').addEventListener('click', deleteNote);
+  pinBtn.addEventListener('click', togglePin);
+  searchEl.addEventListener('input', () => renderList(searchEl.value));
+  container.querySelector('.back-btn').addEventListener('click', () => {
+    clearTimeout(saveTimer); doSave(); goHome();
+  });
 
-  window.notesContext = (e, id) => {
-    e.preventDefault();
-    const menu = document.createElement('div');
-    menu.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);z-index:999;min-width:160px;`;
-    menu.innerHTML = `
-      <div onclick="notesTogglePin('${id}');menu.remove()" style="padding:8px 14px;cursor:pointer;font-size:13px;">📌 Anheften/Lösen</div>
-      <div onclick="notesExport('${id}');menu.remove()" style="padding:8px 14px;cursor:pointer;font-size:13px;">⬇ Exportieren</div>
-      <div onclick="notesDuplicate('${id}');menu.remove()" style="padding:8px 14px;cursor:pointer;font-size:13px;">⧉ Duplizieren</div>
-      <hr style="border-color:var(--border);margin:2px 0;">
-      <div onclick="notesDelete('${id}');menu.remove()" style="padding:8px 14px;cursor:pointer;font-size:13px;color:var(--danger);">🗑 Löschen</div>
-    `;
-    document.body.append(menu);
-    const remove = () => { menu.remove(); document.removeEventListener('click', remove); };
-    setTimeout(() => document.addEventListener('click', remove), 50);
-  };
-
-  window.notesDuplicate = (id) => {
-    const note = notes.find(n => n.id === id);
-    if (!note) return;
-    const dup = { ...note, id: 'n'+Date.now(), title: note.title + ' (Kopie)', date: Date.now(), pinned: false };
-    notes.unshift(dup);
-    saveNotes();
-    renderList();
-  };
-
-  window.notesExport = (id) => {
-    const note = notes.find(n => n.id === id);
-    if (!note) return;
-    downloadFile(note.title + '\n' + '='.repeat(note.title.length) + '\n\n' + note.content, note.title.replace(/[^a-z0-9äöüß]/gi, '_') + '.txt');
-  };
-
-  window.notesExportAll = () => {
-    const text = notes.map(n => `# ${n.title}\n\n${n.content}`).join('\n\n---\n\n');
-    downloadFile(text, 'alle_notizen.txt');
-  };
-
-  function saveNotes() { JarvisDB.set('notes_list', notes); }
-
-  renderList();
-  if (notes[0]) notesOpen(notes[0].id);
+  selectNote(notes[0].id);
 }

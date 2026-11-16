@@ -1,565 +1,343 @@
-// ===== JARVIS CALC =====
+/* ===== JARVIS OFFICE v2 — CALC ===== */
 
 function initCalc(container) {
-  const ROWS = 100, COLS = 26;
-  let cells = {}; // { 'A1': { raw, value, fmt } }
-  let selectedCell = { r: 0, c: 0 };
-  let selRange = null;
-  let currentDocId = null;
-  let isEditing = false;
+  const ROWS = 50, COLS = 26;
+  let cells = {};        // { "A1": { raw, val, fmt } }
+  let dirty = new Set(); // cells needing re-render
+  let selected = { r: 0, c: 0 };
+  let docId = null;
+  let isDirty = false;
 
+  // ── DOM ──────────────────────────────────────────────────────────────────
   container.innerHTML = `
-    <div class="app-titlebar">
-      <button class="back-btn" onclick="goHome()">←</button>
-      <span class="app-title" style="color:var(--calc)">📊 Jarvis Calc</span>
-      <span class="filename" id="calc-filename">Tabelle1.jcalc</span>
-      <div class="titlebar-actions">
-        <button class="tb-btn" onclick="calcNew()">📄 Neu</button>
-        <button class="tb-btn" onclick="calcOpen()">📂 Öffnen</button>
-        <button class="tb-btn" onclick="calcSave()">💾 Speichern</button>
-        <button class="tb-btn" onclick="calcExportCSV()">⬇ CSV</button>
-        <button class="tb-btn" onclick="calcInsertChart()">📈 Diagramm</button>
+    <div class="app-chrome calc-app">
+      <div class="titlebar">
+        <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
+        <span class="app-title" id="calc-title" contenteditable="true">Tabelle1</span>
+        <div class="titlebar-actions">
+          <button class="btn btn-ghost btn-sm" id="calc-new">${icon('filePlus', 15)} Neu</button>
+          <button class="btn btn-ghost btn-sm" id="calc-open">${icon('folderOpen', 15)} Öffnen</button>
+          <button class="btn btn-primary btn-sm" id="calc-save">${icon('save', 15)} Speichern</button>
+        </div>
       </div>
-    </div>
-    <div class="toolbar">
-      <button class="tb-btn" onclick="calcFormatCmd('bold')"><b>B</b></button>
-      <button class="tb-btn" onclick="calcFormatCmd('italic')"><i>I</i></button>
-      <button class="tb-btn" onclick="calcFormatCmd('underline')"><u>U</u></button>
-      <div class="tb-sep"></div>
-      <button class="tb-btn" onclick="calcAlign('left')">⬅</button>
-      <button class="tb-btn" onclick="calcAlign('center')">↔</button>
-      <button class="tb-btn" onclick="calcAlign('right')">➡</button>
-      <div class="tb-sep"></div>
-      <select class="tb-select" id="calc-numfmt" style="width:110px">
-        <option value="general">Standard</option>
-        <option value="number">Zahl</option>
-        <option value="currency">Währung</option>
-        <option value="percent">Prozent</option>
-        <option value="date">Datum</option>
-        <option value="text">Text</option>
-      </select>
-      <div class="tb-sep"></div>
-      <input type="color" id="calc-bg" value="#ffffff" title="Hintergrundfarbe" style="width:24px;height:24px;border:none;background:none;cursor:pointer;padding:0;" />
-      <input type="color" id="calc-fg" value="#000000" title="Schriftfarbe" style="width:24px;height:24px;border:none;background:none;cursor:pointer;padding:0;" />
-      <div class="tb-sep"></div>
-      <button class="tb-btn" onclick="calcInsertRow()">+ Zeile</button>
-      <button class="tb-btn" onclick="calcDeleteRow()">- Zeile</button>
-      <button class="tb-btn" onclick="calcInsertCol()">+ Spalte</button>
-      <button class="tb-btn" onclick="calcDeleteCol()">- Spalte</button>
-      <div class="tb-sep"></div>
-      <button class="tb-btn" onclick="calcAutoSum()">Σ AutoSumme</button>
-      <button class="tb-btn" onclick="calcSort()">⇅ Sortieren</button>
-    </div>
-    <div class="calc-layout">
-      <div class="calc-formula-bar">
-        <input class="calc-cell-ref" id="calc-cellref" value="A1" readonly />
-        <span style="color:var(--text3);font-size:13px">ƒx</span>
-        <input class="calc-formula-input" id="calc-formula" placeholder="Formel oder Wert eingeben..." />
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <span class="cell-ref-box" id="calc-ref">A1</span>
+          <input type="text" id="calc-formula" class="formula-bar" aria-label="Formelleiste" placeholder="Wert oder =Formel" />
+        </div>
+        <div class="toolbar-sep"></div>
+        <div class="toolbar-group">
+          <button class="btn btn-ghost btn-sm" id="calc-insert-chart">${icon('barChart', 15)} Diagramm</button>
+          <button class="btn btn-ghost btn-sm" id="calc-export">${icon('download', 15)} CSV</button>
+        </div>
       </div>
-      <div class="calc-body" id="calc-body"></div>
-    </div>
-    <div class="statusbar">
-      <span id="calc-sum">Summe: 0</span>
-      <span id="calc-avg">Durchschnitt: 0</span>
-      <span id="calc-count">Anzahl: 0</span>
-      <span style="margin-left:auto" id="calc-mode">Bereit</span>
+      <div class="calc-scroll">
+        <table class="calc-table" id="calc-table" role="grid" aria-label="Tabellenkalkulation"></table>
+      </div>
+      <div class="statusbar">
+        <span id="calc-status">Bereit</span>
+        <span id="calc-dirty"></span>
+      </div>
     </div>
   `;
 
-  function buildGrid() {
-    const body = document.getElementById('calc-body');
-    let html = '<div class="calc-grid-wrap">';
-    html += '<div class="calc-header-row"><div class="corner-header"></div>';
-    for (let c = 0; c < COLS; c++) html += `<div class="col-header" data-col="${c}">${colToLetter(c)}</div>`;
-    html += '</div>';
-    for (let r = 0; r < ROWS; r++) {
-      html += `<div class="calc-row"><div class="row-header">${r + 1}</div>`;
-      for (let c = 0; c < COLS; c++) {
-        const ref = cellRef(r, c);
-        html += `<div class="calc-cell" data-r="${r}" data-c="${c}" data-ref="${ref}" tabindex="-1"></div>`;
-      }
-      html += '</div>';
+  const table    = container.querySelector('#calc-table');
+  const formulaBar = container.querySelector('#calc-formula');
+  const refBox   = container.querySelector('#calc-ref');
+  const titleEl  = container.querySelector('#calc-title');
+  const dirtyEl  = container.querySelector('#calc-dirty');
+  const statusEl = container.querySelector('#calc-status');
+
+  // ── Build table skeleton ──────────────────────────────────────────────────
+  function buildTable() {
+    const frag = document.createDocumentFragment();
+    // header row
+    const hrow = document.createElement('tr');
+    hrow.appendChild(document.createElement('th')); // corner
+    for (let c = 0; c < COLS; c++) {
+      const th = document.createElement('th');
+      th.textContent = colToLetter(c);
+      th.setAttribute('scope', 'col');
+      frag.appendChild(th); // temp; we'll add to hrow
+      hrow.appendChild(th);
     }
-    html += '</div>';
-    body.innerHTML = html;
-    refreshDisplay();
-    attachEvents(body);
-  }
-
-  function attachEvents(body) {
-    body.addEventListener('click', e => {
-      const cell = e.target.closest('.calc-cell');
-      if (!cell) return;
-      const r = +cell.dataset.r, c = +cell.dataset.c;
-      if (e.shiftKey && selRange) {
-        selRange.r2 = r; selRange.c2 = c;
-      } else {
-        selRange = { r1: r, c1: c, r2: r, c2: c };
-        selectCell(r, c);
+    frag.appendChild(hrow);
+    // data rows
+    for (let r = 0; r < ROWS; r++) {
+      const row = document.createElement('tr');
+      const rowH = document.createElement('th');
+      rowH.textContent = r + 1;
+      rowH.setAttribute('scope', 'row');
+      row.appendChild(rowH);
+      for (let c = 0; c < COLS; c++) {
+        const td = document.createElement('td');
+        td.dataset.r = r;
+        td.dataset.c = c;
+        td.setAttribute('tabindex', '-1');
+        td.setAttribute('role', 'gridcell');
+        row.appendChild(td);
       }
-      updateRangeHighlight();
-    });
-    body.addEventListener('dblclick', e => {
-      const cell = e.target.closest('.calc-cell');
-      if (!cell) return;
-      startEdit(+cell.dataset.r, +cell.dataset.c, cell);
-    });
-    body.addEventListener('keydown', e => {
-      if (isEditing) return;
-      const { r, c } = selectedCell;
-      const nav = { ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1], Tab:[0,1], Enter:[1,0] };
-      if (nav[e.key]) {
-        e.preventDefault();
-        const [dr, dc] = nav[e.key];
-        selectCell(Math.max(0, Math.min(ROWS-1, r+dr)), Math.max(0, Math.min(COLS-1, c+dc)));
-      } else if (e.key === 'Delete' || e.key === 'Backspace') {
-        deleteSelected();
-      } else if (e.key === 'F2') {
-        const el = getCellEl(r, c);
-        if (el) startEdit(r, c, el);
-      } else if (!e.ctrlKey && !e.metaKey && e.key.length === 1) {
-        const el = getCellEl(r, c);
-        if (el) startEdit(r, c, el, e.key);
-      } else if (e.ctrlKey && e.key === 's') {
-        e.preventDefault(); calcSave();
-      } else if (e.ctrlKey && e.key === 'c') {
-        copySelected();
-      } else if (e.ctrlKey && e.key === 'v') {
-        pasteToSelected();
-      }
-    });
-  }
-
-  let clipboard = [];
-
-  function copySelected() {
-    const ref = cellRef(selectedCell.r, selectedCell.c);
-    const c = cells[ref];
-    clipboard = [[c ? c.raw : '']];
-    showNotify('Kopiert.', 'info');
-  }
-
-  function pasteToSelected() {
-    const ref = cellRef(selectedCell.r, selectedCell.c);
-    if (clipboard[0]) setCell(selectedCell.r, selectedCell.c, clipboard[0][0]);
+      frag.appendChild(row);
+    }
+    table.innerHTML = '';
+    table.appendChild(frag);
   }
 
   function getCellEl(r, c) {
-    return document.querySelector(`.calc-cell[data-r="${r}"][data-c="${c}"]`);
+    return table.querySelector(`td[data-r="${r}"][data-c="${c}"]`);
   }
 
-  function selectCell(r, c) {
-    const prev = getCellEl(selectedCell.r, selectedCell.c);
-    if (prev) prev.classList.remove('selected');
-    selectedCell = { r, c };
-    selRange = { r1: r, c1: c, r2: r, c2: c };
-    const el = getCellEl(r, c);
-    if (el) {
-      el.classList.add('selected');
-      el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    }
-    const ref = cellRef(r, c);
-    document.getElementById('calc-cellref').value = ref;
-    const data = cells[ref];
-    document.getElementById('calc-formula').value = data ? data.raw : '';
-    updateStatusBar();
+  // ── Cell key helper ───────────────────────────────────────────────────────
+  function key(r, c) { return cellRef(r, c); }
+
+  // ── Formula evaluation ────────────────────────────────────────────────────
+  function getCellVal(ref) {
+    const v = cells[ref.toUpperCase()]?.val;
+    return v === undefined ? 0 : (isNaN(v) ? v : Number(v));
   }
 
-  function updateRangeHighlight() {
-    $$('.calc-cell.selected-range').forEach(e => e.classList.remove('selected-range'));
-    if (!selRange) return;
-    const { r1, c1, r2, c2 } = selRange;
-    const minR = Math.min(r1,r2), maxR = Math.max(r1,r2);
-    const minC = Math.min(c1,c2), maxC = Math.max(c1,c2);
-    for (let r = minR; r <= maxR; r++)
-      for (let c = minC; c <= maxC; c++) {
-        if (r === selectedCell.r && c === selectedCell.c) continue;
-        getCellEl(r, c)?.classList.add('selected-range');
-      }
-    updateStatusBar();
+  function evalFormula(expr) {
+    if (!expr.startsWith('=')) return isNaN(expr) ? expr : Number(expr) || expr;
+    let f = expr.slice(1).trim().toUpperCase();
+    try {
+      // SUM(A1:B3)
+      f = f.replace(/SUM\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
+        let sum = 0;
+        const [r1, c1] = refToRC(a), [r2, c2] = refToRC(b);
+        for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) sum += Number(getCellVal(cellRef(r, c))) || 0;
+        return sum;
+      });
+      // AVG(A1:B3)
+      f = f.replace(/AVG\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
+        let sum = 0, cnt = 0;
+        const [r1, c1] = refToRC(a), [r2, c2] = refToRC(b);
+        for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) { sum += Number(getCellVal(cellRef(r, c))) || 0; cnt++; }
+        return cnt ? sum / cnt : 0;
+      });
+      // MAX / MIN
+      f = f.replace(/MAX\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
+        const vals = rangeVals(a, b); return vals.length ? Math.max(...vals) : 0;
+      });
+      f = f.replace(/MIN\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
+        const vals = rangeVals(a, b); return vals.length ? Math.min(...vals) : 0;
+      });
+      // COUNT
+      f = f.replace(/COUNT\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => rangeVals(a, b).filter(v => !isNaN(v)).length);
+      // Cell references
+      f = f.replace(/\b([A-Z]+\d+)\b/g, ref => {
+        const v = getCellVal(ref);
+        return typeof v === 'number' ? v : `"${v}"`;
+      });
+      // eslint-disable-next-line no-new-func
+      const result = Function('"use strict"; return (' + f + ')')();
+      return isNaN(result) ? result : Number(result.toFixed(10));
+    } catch { return '#ERR'; }
   }
 
-  function startEdit(r, c, cellEl, initialKey = null) {
-    isEditing = true;
-    cellEl.classList.add('editing');
-    const ref = cellRef(r, c);
-    const data = cells[ref];
-    const input = document.createElement('input');
-    input.value = initialKey || (data ? data.raw : '');
-    cellEl.innerHTML = '';
-    cellEl.append(input);
-    input.focus();
-    if (!initialKey && input.value) input.select();
-
-    input.addEventListener('blur', () => commitEdit(r, c, cellEl, input.value));
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); commitEdit(r, c, cellEl, input.value); selectCell(Math.min(ROWS-1, r+1), c); }
-      else if (e.key === 'Escape') { isEditing = false; cellEl.classList.remove('editing'); refreshCell(r, c); selectCell(r, c); }
-      else if (e.key === 'Tab') { e.preventDefault(); commitEdit(r, c, cellEl, input.value); selectCell(r, Math.min(COLS-1, c+1)); }
-    });
-    document.getElementById('calc-formula').value = input.value;
-    document.getElementById('calc-formula').addEventListener('input', e => { input.value = e.target.value; }, { once: true });
-  }
-
-  function commitEdit(r, c, cellEl, raw) {
-    isEditing = false;
-    cellEl.classList.remove('editing');
-    setCell(r, c, raw);
-  }
-
-  function setCell(r, c, raw) {
-    const ref = cellRef(r, c);
-    if (raw === '' || raw == null) { delete cells[ref]; }
-    else {
-      const value = evalCell(raw, ref);
-      cells[ref] = { raw, value };
-    }
-    refreshDisplay();
-    updateStatusBar();
-  }
-
-  function evalCell(raw, selfRef) {
-    if (!raw || typeof raw !== 'string') return raw;
-    if (raw.startsWith('=')) {
-      try { return evalFormula(raw.slice(1).toUpperCase(), selfRef); }
-      catch(e) { return '#FEHLER'; }
-    }
-    const n = parseFloat(raw.replace(',', '.'));
-    if (!isNaN(n) && raw.trim() !== '') return n;
-    return raw;
-  }
-
-  function evalFormula(expr, selfRef) {
-    // Replace cell ranges A1:B3 with array values
-    expr = expr.replace(/([A-Z]+)(\d+):([A-Z]+)(\d+)/g, (_, c1, r1, c2, r2) => {
-      const values = [];
-      const minC = Math.min(letterToCol(c1), letterToCol(c2));
-      const maxC = Math.max(letterToCol(c1), letterToCol(c2));
-      const minR = Math.min(parseInt(r1)-1, parseInt(r2)-1);
-      const maxR = Math.max(parseInt(r1)-1, parseInt(r2)-1);
-      for (let r = minR; r <= maxR; r++)
-        for (let c = minC; c <= maxC; c++) {
-          const ref = cellRef(r, c);
-          const v = cells[ref]?.value;
-          if (v !== undefined && v !== '' && !isNaN(v)) values.push(+v);
-        }
-      return JSON.stringify(values);
-    });
-
-    // Replace single cell refs
-    expr = expr.replace(/([A-Z]+)(\d+)/g, (_, col, row) => {
-      const ref = col + row;
-      if (ref === selfRef) return '0';
-      const v = cells[ref]?.value;
-      return (v !== undefined && v !== '') ? (isNaN(v) ? `"${v}"` : String(+v)) : '0';
-    });
-
-    // Built-in functions
-    const fns = {
-      SUM: (arr) => (Array.isArray(arr) ? arr : [arr]).flat().reduce((a,b)=>a+(+b||0),0),
-      AVERAGE: (arr) => { const a=(Array.isArray(arr)?arr:[arr]).flat().filter(v=>!isNaN(v)); return a.length?a.reduce((s,v)=>s+(+v),0)/a.length:0; },
-      AVG: (arr) => fns.AVERAGE(arr),
-      COUNT: (arr) => (Array.isArray(arr)?arr:[arr]).flat().filter(v=>!isNaN(+v)&&v!=='').length,
-      MAX: (arr) => Math.max(...(Array.isArray(arr)?arr:[arr]).flat().map(Number)),
-      MIN: (arr) => Math.min(...(Array.isArray(arr)?arr:[arr]).flat().map(Number)),
-      ABS: (v) => Math.abs(+v),
-      ROUND: (v, d=0) => Math.round(+v * Math.pow(10,+d)) / Math.pow(10,+d),
-      SQRT: (v) => Math.sqrt(+v),
-      POW: (b,e) => Math.pow(+b,+e),
-      IF: (cond,t,f) => cond?t:f,
-      LEN: (s) => String(s).length,
-      UPPER: (s) => String(s).toUpperCase(),
-      LOWER: (s) => String(s).toLowerCase(),
-      CONCAT: (...args) => args.join(''),
-      TODAY: () => new Date().toLocaleDateString('de-DE'),
-      NOW: () => new Date().toLocaleString('de-DE'),
-      PI: () => Math.PI,
-    };
-
-    // Replace function calls
-    expr = expr.replace(/([A-Z]+)\(([^)]*)\)/g, (_, fn, args) => {
-      if (fns[fn]) {
-        try {
-          const parsedArgs = args ? args.split(',').map(a => {
-            const t = a.trim();
-            if (t.startsWith('[')) return JSON.parse(t);
-            if (t.startsWith('"') || t.startsWith("'")) return t.slice(1,-1);
-            if (!isNaN(t)) return +t;
-            return t;
-          }) : [];
-          const result = fns[fn](...parsedArgs);
-          return typeof result === 'string' ? `"${result}"` : String(result);
-        } catch { return '0'; }
-      }
-      return '0';
-    });
-
-    // Safe eval
-    const result = Function(`"use strict"; return (${expr})`)();
-    return isNaN(result) ? result : +result;
-  }
-
-  function formatValue(ref) {
-    const data = cells[ref];
-    if (!data) return '';
-    const v = data.value;
-    if (v === undefined || v === null || v === '') return '';
-    if (typeof v === 'number') {
-      if (isNaN(v)) return '#WERT';
-      if (!isFinite(v)) return '#DIV/0';
-      return v.toLocaleString('de-DE', { maximumFractionDigits: 8 });
-    }
-    return String(v);
-  }
-
-  function refreshCell(r, c) {
-    const el = getCellEl(r, c);
-    if (!el) return;
-    const ref = cellRef(r, c);
-    const display = formatValue(ref);
-    el.textContent = display;
-    const data = cells[ref];
-    el.classList.toggle('cell-formula', !!(data?.raw?.startsWith('=')));
-    el.classList.toggle('cell-error', display.startsWith('#'));
-    el.classList.toggle('cell-number', typeof data?.value === 'number');
-    if (data?.style) {
-      Object.assign(el.style, data.style);
-    }
-  }
-
-  function refreshDisplay() {
-    for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++)
-        refreshCell(r, c);
-  }
-
-  function deleteSelected() {
-    if (selRange) {
-      const { r1, c1, r2, c2 } = selRange;
-      for (let r = Math.min(r1,r2); r <= Math.max(r1,r2); r++)
-        for (let c = Math.min(c1,c2); c <= Math.max(c1,c2); c++) {
-          delete cells[cellRef(r, c)];
-          refreshCell(r, c);
-        }
-    }
-    document.getElementById('calc-formula').value = '';
-    updateStatusBar();
-  }
-
-  function updateStatusBar() {
-    if (!selRange) return;
-    const { r1, c1, r2, c2 } = selRange;
+  function rangeVals(a, b) {
+    const [r1, c1] = refToRC(a), [r2, c2] = refToRC(b);
     const vals = [];
-    for (let r = Math.min(r1,r2); r <= Math.max(r1,r2); r++)
-      for (let c = Math.min(c1,c2); c <= Math.max(c1,c2); c++) {
-        const v = cells[cellRef(r,c)]?.value;
-        if (typeof v === 'number' && !isNaN(v)) vals.push(v);
-      }
-    const sum = vals.reduce((a,b)=>a+b,0);
-    const avg = vals.length ? sum/vals.length : 0;
-    document.getElementById('calc-sum').textContent = `Summe: ${sum.toLocaleString('de-DE')}`;
-    document.getElementById('calc-avg').textContent = `Durchschnitt: ${avg.toLocaleString('de-DE',{maximumFractionDigits:4})}`;
-    document.getElementById('calc-count').textContent = `Anzahl: ${vals.length}`;
+    for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) vals.push(Number(getCellVal(cellRef(r, c))));
+    return vals;
   }
 
-  // Formula bar input
-  document.getElementById('calc-formula').addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      const raw = document.getElementById('calc-formula').value;
-      setCell(selectedCell.r, selectedCell.c, raw);
-      selectCell(Math.min(ROWS-1, selectedCell.r+1), selectedCell.c);
+  function refToRC(ref) {
+    const m = ref.match(/^([A-Z]+)(\d+)$/);
+    return m ? [parseInt(m[2]) - 1, letterToCol(m[1])] : [0, 0];
+  }
+
+  // ── Dirty-cell rendering ──────────────────────────────────────────────────
+  function scheduleRender() {
+    requestAnimationFrame(flushDirty);
+  }
+
+  function flushDirty() {
+    for (const k of dirty) {
+      const cell = cells[k];
+      const [r, c] = refToRC(k);
+      const td = getCellEl(r, c);
+      if (!td) continue;
+      const display = cell ? String(cell.val === undefined ? '' : cell.val) : '';
+      td.textContent = display;
+      td.classList.toggle('cell-error', display === '#ERR');
+      td.classList.toggle('cell-formula', !!(cell?.raw?.startsWith('=')));
+    }
+    dirty.clear();
+  }
+
+  function setCellRaw(r, c, raw) {
+    const k = key(r, c);
+    if (raw === '' || raw === undefined) {
+      delete cells[k];
+    } else {
+      const val = evalFormula(raw);
+      cells[k] = { raw, val };
+    }
+    dirty.add(k);
+    isDirty = true;
+    dirtyEl.textContent = '● Ungespeichert';
+    scheduleRender();
+  }
+
+  // ── Selection ─────────────────────────────────────────────────────────────
+  function selectCell(r, c) {
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+    const prev = getCellEl(selected.r, selected.c);
+    prev?.classList.remove('selected');
+    selected = { r, c };
+    const td = getCellEl(r, c);
+    if (td) { td.classList.add('selected'); td.focus(); }
+    const k = key(r, c);
+    refBox.textContent = k;
+    formulaBar.value = cells[k]?.raw || '';
+    updateStatus();
+  }
+
+  function updateStatus() {
+    const k = key(selected.r, selected.c);
+    const val = cells[k]?.val;
+    statusEl.textContent = val !== undefined ? String(val) : '';
+  }
+
+  // ── Event: click cell ─────────────────────────────────────────────────────
+  table.addEventListener('click', e => {
+    const td = e.target.closest('td');
+    if (!td) return;
+    selectCell(Number(td.dataset.r), Number(td.dataset.c));
+  });
+
+  // ── Event: keyboard nav ───────────────────────────────────────────────────
+  table.addEventListener('keydown', e => {
+    const { r, c } = selected;
+    if (e.key === 'ArrowRight')  { e.preventDefault(); selectCell(r, c + 1); }
+    else if (e.key === 'ArrowLeft')  { e.preventDefault(); selectCell(r, c - 1); }
+    else if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); selectCell(r + 1, c); }
+    else if (e.key === 'ArrowUp')    { e.preventDefault(); selectCell(r - 1, c); }
+    else if (e.key === 'Tab')        { e.preventDefault(); selectCell(r, c + (e.shiftKey ? -1 : 1)); }
+    else if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (e.target.tagName === 'TD') { setCellRaw(r, c, ''); formulaBar.value = ''; }
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+      formulaBar.value = e.key;
+      formulaBar.focus();
     }
   });
 
-  // Format commands
-  window.calcFormatCmd = (cmd) => {
-    const ref = cellRef(selectedCell.r, selectedCell.c);
-    cells[ref] = cells[ref] || { raw: '', value: '' };
-    cells[ref].style = cells[ref].style || {};
-    if (cmd === 'bold') cells[ref].style.fontWeight = cells[ref].style.fontWeight === 'bold' ? '' : 'bold';
-    if (cmd === 'italic') cells[ref].style.fontStyle = cells[ref].style.fontStyle === 'italic' ? '' : 'italic';
-    if (cmd === 'underline') cells[ref].style.textDecoration = cells[ref].style.textDecoration === 'underline' ? '' : 'underline';
-    refreshCell(selectedCell.r, selectedCell.c);
-  };
-
-  window.calcAlign = (align) => {
-    const ref = cellRef(selectedCell.r, selectedCell.c);
-    cells[ref] = cells[ref] || { raw: '', value: '' };
-    cells[ref].style = cells[ref].style || {};
-    cells[ref].style.textAlign = align;
-    refreshCell(selectedCell.r, selectedCell.c);
-  };
-
-  window.calcInsertRow = () => {
-    const r = selectedCell.r;
-    const newCells = {};
-    for (const [ref, data] of Object.entries(cells)) {
-      const col = ref.match(/[A-Z]+/)[0];
-      const row = parseInt(ref.match(/\d+/)[0]) - 1;
-      if (row >= r) newCells[cellRef(row+1, letterToCol(col))] = data;
-      else newCells[ref] = data;
+  // ── Formula bar ───────────────────────────────────────────────────────────
+  formulaBar.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      commitFormula();
+      selectCell(selected.r + 1, selected.c);
+    } else if (e.key === 'Escape') {
+      formulaBar.value = cells[key(selected.r, selected.c)]?.raw || '';
+      getCellEl(selected.r, selected.c)?.focus();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      commitFormula();
+      selectCell(selected.r, selected.c + (e.shiftKey ? -1 : 1));
     }
-    cells = newCells;
-    refreshDisplay();
-  };
+  });
 
-  window.calcDeleteRow = () => {
-    const r = selectedCell.r;
-    const newCells = {};
-    for (const [ref, data] of Object.entries(cells)) {
-      const col = ref.match(/[A-Z]+/)[0];
-      const row = parseInt(ref.match(/\d+/)[0]) - 1;
-      if (row < r) newCells[ref] = data;
-      else if (row > r) newCells[cellRef(row-1, letterToCol(col))] = data;
-    }
-    cells = newCells;
-    refreshDisplay();
-  };
+  function commitFormula() {
+    setCellRaw(selected.r, selected.c, formulaBar.value);
+    getCellEl(selected.r, selected.c)?.focus();
+  }
 
-  window.calcInsertCol = () => {
-    const c = selectedCell.c;
-    const newCells = {};
-    for (const [ref, data] of Object.entries(cells)) {
-      const col = letterToCol(ref.match(/[A-Z]+/)[0]);
-      const row = parseInt(ref.match(/\d+/)[0]) - 1;
-      if (col >= c) newCells[cellRef(row, col+1)] = data;
-      else newCells[ref] = data;
-    }
-    cells = newCells;
-    refreshDisplay();
-  };
+  // ── Save / Load ───────────────────────────────────────────────────────────
+  function saveDoc() {
+    const title = titleEl.textContent.trim() || 'Tabelle1';
+    if (!docId) docId = JarvisDB.genId();
+    JarvisDB.saveDoc('calc', docId, { title, cells });
+    isDirty = false;
+    dirtyEl.textContent = '';
+    showNotify('Gespeichert: ' + title, 'success');
+  }
 
-  window.calcDeleteCol = () => {
-    const c = selectedCell.c;
-    const newCells = {};
-    for (const [ref, data] of Object.entries(cells)) {
-      const col = letterToCol(ref.match(/[A-Z]+/)[0]);
-      const row = parseInt(ref.match(/\d+/)[0]) - 1;
-      if (col < c) newCells[ref] = data;
-      else if (col > c) newCells[cellRef(row, col-1)] = data;
-    }
-    cells = newCells;
-    refreshDisplay();
-  };
+  function loadDocById(id) {
+    const d = JarvisDB.loadDoc('calc', id);
+    if (!d) return;
+    docId = id;
+    titleEl.textContent = d.title || 'Tabelle1';
+    cells = d.cells || {};
+    // mark all occupied cells dirty
+    for (const k of Object.keys(cells)) dirty.add(k);
+    flushDirty();
+    isDirty = false;
+    dirtyEl.textContent = '';
+    selectCell(0, 0);
+  }
 
-  window.calcAutoSum = () => {
-    const r = selectedCell.r, c = selectedCell.c;
-    let startR = r - 1;
-    while (startR >= 0 && cells[cellRef(startR, c)]?.raw && !isNaN(parseFloat(cells[cellRef(startR, c)].raw))) startR--;
-    startR++;
-    if (startR < r) {
-      const formula = `=SUM(${cellRef(startR, c)}:${cellRef(r-1, c)})`;
-      setCell(r, c, formula);
-      getCellEl(r, c) && (getCellEl(r, c).textContent = formatValue(cellRef(r, c)));
-    }
-  };
-
-  window.calcSort = () => {
-    const c = selectedCell.c;
-    const rowData = [];
-    for (let r = 0; r < ROWS; r++) {
-      const ref = cellRef(r, c);
-      if (cells[ref]) rowData.push({ r, val: cells[ref].value });
-    }
-    rowData.sort((a, b) => {
-      if (typeof a.val === 'number' && typeof b.val === 'number') return a.val - b.val;
-      return String(a.val).localeCompare(String(b.val));
-    });
-    // Reassign rows
-    const newCells = {};
-    for (const [ref, data] of Object.entries(cells)) {
-      const col = letterToCol(ref.match(/[A-Z]+/)[0]);
-      const row = parseInt(ref.match(/\d+/)[0]) - 1;
-      if (col !== c) newCells[ref] = data;
-    }
-    rowData.forEach((item, newR) => {
-      newCells[cellRef(newR, c)] = cells[cellRef(item.r, c)];
-    });
-    cells = newCells;
-    refreshDisplay();
-  };
-
-  window.calcInsertChart = () => {
-    // Simple SVG bar chart in a new window
-    const c = selectedCell.c;
-    const values = [];
-    for (let r = 0; r < ROWS; r++) {
-      const v = cells[cellRef(r, c)]?.value;
-      if (typeof v === 'number' && !isNaN(v)) values.push({ label: cellRef(r, c), value: v });
-    }
-    if (!values.length) return showNotify('Keine numerischen Daten in dieser Spalte.', 'warn');
-    const max = Math.max(...values.map(v => v.value));
-    const w = 600, h = 300, pad = 40;
-    const bw = (w - 2*pad) / values.length - 4;
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" style="font-family:sans-serif">`;
-    svg += `<rect width="${w}" height="${h}" fill="#1a1a2e"/>`;
-    values.forEach((v, i) => {
-      const bh = ((v.value / max) * (h - 2*pad));
-      const x = pad + i * ((w - 2*pad) / values.length);
-      const y = h - pad - bh;
-      svg += `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="#7c3aed" rx="2"/>`;
-      svg += `<text x="${x + bw/2}" y="${h - pad + 14}" text-anchor="middle" fill="#94a3b8" font-size="10">${v.label}</text>`;
-      svg += `<text x="${x + bw/2}" y="${y - 4}" text-anchor="middle" fill="#e2e8f0" font-size="10">${v.value}</text>`;
-    });
-    svg += `<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h-pad}" stroke="#2d2d5e" stroke-width="1"/>`;
-    svg += `<line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="#2d2d5e" stroke-width="1"/>`;
-    svg += '</svg>';
-    const win = window.open('', '_blank', 'width=640,height=400');
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Diagramm</title><style>body{margin:0;background:#0f0f1a;display:flex;align-items:center;justify-content:center;min-height:100vh;}</style></head><body>${svg}</body></html>`);
-    win.document.close();
-  };
-
-  window.calcSave = () => {
-    const id = currentDocId || JarvisDB.genId();
-    currentDocId = id;
-    const name = document.getElementById('calc-filename').textContent;
-    JarvisDB.saveDoc('calc', id, { name, cells });
-    showNotify('Gespeichert.', 'success');
-  };
-
-  window.calcNew = () => {
-    currentDocId = null;
+  function newDoc() {
+    if (isDirty && !confirm('Ungespeicherte Änderungen verwerfen?')) return;
+    docId = null;
     cells = {};
-    refreshDisplay();
-    document.getElementById('calc-filename').textContent = 'Tabelle1.jcalc';
-  };
+    dirty.clear();
+    table.querySelectorAll('td').forEach(td => { td.textContent = ''; td.className = ''; });
+    titleEl.textContent = 'Tabelle1';
+    isDirty = false;
+    dirtyEl.textContent = '';
+    selectCell(0, 0);
+  }
 
-  window.calcOpen = () => {
+  function openDocDialog() {
     const docs = JarvisDB.listDocs('calc');
-    if (!docs.length) return showNotify('Keine gespeicherten Dateien.', 'warn');
-    const items = docs.map(d => `<div class="sidebar-item" data-id="${d.id}" style="cursor:pointer">${d.name} — <small>${new Date(d.modified).toLocaleString('de-DE')}</small></div>`).join('');
-    showModal(`<h3>📂 Datei öffnen</h3><div style="max-height:300px;overflow-y:auto">${items}</div><div class="modal-actions"><button class="btn btn-ghost btn-cancel">Abbrechen</button></div>`, null);
-    setTimeout(() => {
-      $$('.sidebar-item[data-id]').forEach(item => {
-        item.addEventListener('click', () => {
-          const doc = JarvisDB.loadDoc('calc', item.dataset.id);
-          if (doc) {
-            currentDocId = doc.id;
-            cells = doc.cells || {};
-            refreshDisplay();
-            document.getElementById('calc-filename').textContent = doc.name;
-            document.querySelector('.modal-overlay')?.remove();
-          }
-        });
+    if (!docs.length) { showNotify('Keine gespeicherten Tabellen.', 'info'); return; }
+    const rows = docs.map(d => `
+      <div class="doc-row" data-id="${sanitize(d.id)}" tabindex="0" role="button">
+        <span class="doc-row-title">${sanitize(d.title)}</span>
+        <span class="doc-row-date">${formatDateTime(new Date(d.modified))}</span>
+        <button class="btn btn-ghost btn-sm doc-delete" data-id="${sanitize(d.id)}" aria-label="Löschen">${icon('trash', 14)}</button>
+      </div>`).join('');
+    showModal(`<h3>Tabelle öffnen</h3><div class="doc-list">${rows}</div><div class="modal-actions"><button class="btn btn-ghost btn-cancel">Abbrechen</button></div>`, null);
+    container.querySelectorAll('.doc-row').forEach(row => {
+      row.addEventListener('click', e => {
+        if (e.target.closest('.doc-delete')) return;
+        if (isDirty && !confirm('Verwerfen?')) return;
+        loadDocById(row.dataset.id);
+        row.closest('.modal-overlay')?.remove();
       });
-    }, 50);
-  };
+    });
+    container.querySelectorAll('.doc-delete').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm('Löschen?')) return;
+        JarvisDB.deleteDoc('calc', btn.dataset.id);
+        btn.closest('.doc-row').remove();
+      });
+    });
+  }
 
-  window.calcExportCSV = () => {
-    let csv = '';
+  // ── CSV Export ────────────────────────────────────────────────────────────
+  container.querySelector('#calc-export').addEventListener('click', () => {
+    const rows = [];
     for (let r = 0; r < ROWS; r++) {
       const row = [];
       for (let c = 0; c < COLS; c++) {
-        const v = cells[cellRef(r,c)]?.value ?? '';
+        const v = cells[key(r, c)]?.val ?? '';
         row.push(typeof v === 'string' && v.includes(',') ? `"${v}"` : v);
       }
-      const line = row.join(',').replace(/,+$/, '');
-      if (line) csv += line + '\n';
+      // trim trailing empty
+      while (row.length && row[row.length - 1] === '') row.pop();
+      if (row.length) rows.push(row.join(','));
     }
-    downloadFile(csv, 'tabelle.csv', 'text/csv');
-  };
+    downloadFile(rows.join('\n'), (titleEl.textContent.trim() || 'Tabelle') + '.csv', 'text/csv');
+  });
 
-  buildGrid();
-  document.getElementById('calc-body').focus();
+  // ── Wiring ────────────────────────────────────────────────────────────────
+  container.querySelector('.back-btn').addEventListener('click', () => {
+    if (isDirty && !confirm('Verwerfen?')) return;
+    goHome();
+  });
+  container.querySelector('#calc-new').addEventListener('click', newDoc);
+  container.querySelector('#calc-open').addEventListener('click', openDocDialog);
+  container.querySelector('#calc-save').addEventListener('click', saveDoc);
+  container.querySelector('#calc-insert-chart').addEventListener('click', () => showNotify('Diagramm-Funktion folgt in v2.1', 'info'));
+  titleEl.addEventListener('input', () => { isDirty = true; dirtyEl.textContent = '● Ungespeichert'; });
+
+  // Ctrl+S
+  container.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); }
+  });
+
+  buildTable();
   selectCell(0, 0);
 }

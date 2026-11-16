@@ -1,17 +1,20 @@
-// ===== JARVIS OFFICE STORAGE =====
+/* ===== JARVIS OFFICE v2 — STORAGE ===== */
 
 const JarvisDB = {
   get(key, def = null) {
-    try { const v = localStorage.getItem('jarvis_' + key); return v ? JSON.parse(v) : def; }
+    try { const v = localStorage.getItem('jo2_' + key); return v !== null ? JSON.parse(v) : def; }
     catch { return def; }
   },
   set(key, val) {
-    try { localStorage.setItem('jarvis_' + key, JSON.stringify(val)); } catch {}
+    try { localStorage.setItem('jo2_' + key, JSON.stringify(val)); } catch(e) {
+      console.warn('JarvisDB: localStorage voll', e);
+    }
   },
-  del(key) { localStorage.removeItem('jarvis_' + key); },
-  keys() { return Object.keys(localStorage).filter(k => k.startsWith('jarvis_')).map(k => k.slice(7)); },
+  del(key) { localStorage.removeItem('jo2_' + key); },
+  keys() {
+    return Object.keys(localStorage).filter(k => k.startsWith('jo2_')).map(k => k.slice(4));
+  },
 
-  // Document management
   saveDoc(app, id, data) {
     const docs = this.get(`${app}_docs`, {});
     docs[id] = { ...data, id, modified: Date.now() };
@@ -22,13 +25,13 @@ const JarvisDB = {
     return this.get(`${app}_docs`, {})[id] || null;
   },
   listDocs(app) {
-    const docs = this.get(`${app}_docs`, {});
-    return Object.values(docs).sort((a, b) => (b.modified || 0) - (a.modified || 0));
+    return Object.values(this.get(`${app}_docs`, {}))
+      .sort((a, b) => (b.modified || 0) - (a.modified || 0));
   },
   deleteDoc(app, id) {
     const docs = this.get(`${app}_docs`, {});
     delete docs[id];
     this.set(`${app}_docs`, docs);
   },
-  genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
+  genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); },
 };
