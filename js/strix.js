@@ -9,9 +9,17 @@ const Strix = (() => {
     'hr','sub','sup','mark','s','small'
   ]);
 
-  const ALLOWED_ATTRS = new Set(['class','style','href','title','align','colspan','rowspan']);
+  const ALLOWED_ATTRS = new Set(['class','href','title','align','colspan','rowspan']);
 
-  const DANGEROUS_PROTO = /^(javascript|data|vbscript|blob):/i;
+  const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
+
+  function _isSafeHref(value) {
+    try {
+      return SAFE_PROTOCOLS.has(new URL(value, location.href).protocol);
+    } catch (_) {
+      return false;
+    }
+  }
 
   function _stripNode(node) {
     const children = [...node.childNodes];
@@ -25,12 +33,8 @@ const Strix = (() => {
       for (const attr of [...child.attributes]) {
         if (!ALLOWED_ATTRS.has(attr.name.toLowerCase())) {
           child.removeAttribute(attr.name);
-        } else if (attr.name === 'href' && DANGEROUS_PROTO.test(attr.value.trim())) {
+        } else if (attr.name === 'href' && !_isSafeHref(attr.value)) {
           child.removeAttribute(attr.name);
-        } else if (attr.name === 'style') {
-          // Strip expression() and url() with dangerous schemes
-          const clean = attr.value.replace(/expression\s*\(/gi, '').replace(/url\s*\(\s*["']?(javascript|data|vbscript)/gi, '');
-          child.setAttribute('style', clean);
         }
       }
       _stripNode(child);
