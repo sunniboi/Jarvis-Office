@@ -19,6 +19,7 @@ Description: Jarvis Office — vollständige Office-Suite im Browser
   * Jarvis Mail    — E-Mail-Client
   * Jarvis Notes   — Schnellnotizen mit Auto-Save
   * Jarvis Calendar — Kalender mit ICS Import/Export
+  * Jarvis Agenten Office — Skill- und Agenten-Planung für Claude Code
  .
  Kein Server, kein Internet erforderlich. Läuft vollständig lokal im Browser.
  Alle Daten verbleiben auf Ihrem Gerät (localStorage).
