@@ -1,7 +1,13 @@
 /* ===== AGENT REACH — Jarvis Office KI-Assistent ===== */
 
 function initAgentReach(container) {
-  const cfg = JarvisDB.get('agent_reach_cfg', { apiKey: '', model: 'claude-sonnet-4-5', maxTokens: 1024 });
+  const stored = JarvisDB.get('agent_reach_cfg', { apiKey: '', model: 'claude-sonnet-4-5', maxTokens: 1024 });
+  if (stored.apiKey) {
+    sessionStorage.setItem('agent_reach_key', stored.apiKey);
+    stored.apiKey = '';
+    JarvisDB.set('agent_reach_cfg', stored);
+  }
+  const cfg = { ...stored, apiKey: sessionStorage.getItem('agent_reach_key') || '' };
   let history = [];
 
   container.innerHTML = `
@@ -75,7 +81,8 @@ function initAgentReach(container) {
       cfg.apiKey    = modal.querySelector('#ar-key').value.trim();
       cfg.model     = modal.querySelector('#ar-model').value;
       cfg.maxTokens = parseInt(modal.querySelector('#ar-tokens').value) || 1024;
-      JarvisDB.set('agent_reach_cfg', cfg);
+      sessionStorage.setItem('agent_reach_key', cfg.apiKey);
+      JarvisDB.set('agent_reach_cfg', { model: cfg.model, maxTokens: cfg.maxTokens, apiKey: '' });
       showNotify('Einstellungen gespeichert.', 'success');
     });
   }
