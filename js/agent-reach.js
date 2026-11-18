@@ -83,10 +83,10 @@ function initAgentReach(container) {
   function addMessage(role, text) {
     const div = document.createElement('div');
     div.className = `ar-msg ar-msg-${role}`;
-    // User-Text wird escaped, KI-Antwort wird sanitized
-    div.innerHTML = role === 'user'
-      ? `<div class="ar-bubble">${sanitize(text).replace(/\n/g, '<br>')}</div>`
-      : `<div class="ar-bubble">${Strix.sanitizeHTML(text.replace(/\n/g, '<br>'))}</div>`;
+    const bubble = document.createElement('div');
+    bubble.className = 'ar-bubble';
+    bubble.textContent = text;
+    div.appendChild(bubble);
     msgBox.appendChild(div);
     msgBox.scrollTop = msgBox.scrollHeight;
     return div;
@@ -133,7 +133,7 @@ function initAgentReach(container) {
       const data = await res.json();
       const reply = data?.content?.[0]?.text || '(Keine Antwort)';
 
-      thinking.querySelector('.ar-bubble').innerHTML = Strix.sanitizeHTML(reply.replace(/\n/g, '<br>'));
+      thinking.querySelector('.ar-bubble').textContent = reply;
       history.push({ role: 'assistant', content: reply });
       statusEl.textContent = '';
 
