@@ -216,3 +216,26 @@ Folgende Skills werden **sofort** aufgerufen, sobald die entsprechenden Schlüss
 - Rechtschreibfehler des Users stillschweigend korrigieren, nicht kommentieren
 - Keine Wiederholungen, keine Schleifen in den Antworten
 - Eigene Meinung klar benennen wenn gefragt
+
+## UI/UX Skill
+
+Bei **jeder** Session und bei **jedem** UI-bezogenen Task (Design, Farben, Layout, Komponenten, Styles, Grafiken) automatisch den Skill laden:
+
+```
+/ui-ux-pro-max
+```
+
+Das gilt für: index.html, CSS-Dateien, Jarvis-Interface, jede Designentscheidung, Farbpaletten, Typografie, Icons.
+
+## Skills im Repo
+
+Alle Skills liegen unter `.claude/skills/`:
+
+- **jarvis-agenten-office:** Routet jede nicht triviale Aufgabe an den passenden Skill und das Agenten-Team.
+- **ui-ux-pro-max:** Zuständig für Layout, Komponenten und Designentscheidungen in `index.html`, CSS und Jarvis-Interface.
+- **replica-*** (11 Skills, MIT, von Jakeschincariol/replica-skill): Für Nachbau, Tests, Design-Tokens und Deploy eigener Projekte. Lizenz in `replica-LICENSE.txt`.
+- **stop-slop:** Entfernt KI-typische Schreibmuster aus Texten (MIT, Hardik Pandya).
+
+Bei Design-Aufgaben gilt: ui-ux-pro-max entscheidet über Stil und Layout, die replica-design- und replica-brand-Skills verwalten die Design-Tokens. Beide nicht gegeneinander ausspielen.
+
+Die replica-Skills sind für eigene Projekte gedacht. Keine fremden Apps, Marken oder Designs kopieren.

@@ -10,6 +10,8 @@ const APPS = {
   notes:    { name: 'Jarvis Notes',    desc: 'Schnellnotizen',       color: 'var(--app-notes)',    init: (c) => initNotes(c) },
   calendar: { name: 'Jarvis Calendar', desc: 'Kalender & Termine',   color: 'var(--app-calendar)', init: (c) => initCalendar(c) },
   agents:   { name: 'Jarvis Agenten Office', desc: 'Skills & Agenten-Team', color: 'var(--app-agents)', init: (c) => initAgents(c) },
+  skills:   { name: 'Find Skills',     desc: 'Feature-Suche',        color: 'var(--app-skills)',   init: (c) => initSkills(c) },
+  anydoc:   { name: 'Jarvis AnyDoc',   desc: 'Dokument-Viewer',      color: 'var(--app-anydoc)',   init: (c) => initAnyDoc(c) },
 };
 
 // App icons as SVG paths (color inherits from parent)
@@ -23,6 +25,8 @@ const APP_ICONS = {
   notes:    '<path d="M11 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" stroke-width="1.5"/><polyline points="13,2 13,9 20,9" stroke-width="1.5"/><line x1="9" y1="13" x2="15" y2="13" stroke-width="1.5"/><line x1="9" y1="17" x2="13" y2="17" stroke-width="1.5"/>',
   calendar: '<rect x="3" y="4" width="18" height="18" rx="2" stroke-width="1.5"/><line x1="16" y1="2" x2="16" y2="6" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="2" x2="8" y2="6" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="10" x2="21" y2="10" stroke-width="1.5"/>',
   agents:   '<circle cx="12" cy="5" r="2.5" stroke-width="1.5"/><circle cx="5" cy="18" r="2.5" stroke-width="1.5"/><circle cx="19" cy="18" r="2.5" stroke-width="1.5"/><path d="M12 7.5v4M12 11.5L6.5 16M12 11.5l5.5 4.5" stroke-width="1.5" stroke-linecap="round"/>',
+  skills:   '<circle cx="11" cy="11" r="8" stroke-width="1.5"/><path d="M21 21l-4.35-4.35" stroke-width="1.5" stroke-linecap="round"/><line x1="8" y1="11" x2="14" y2="11" stroke-width="1.5" stroke-linecap="round"/><line x1="11" y1="8" x2="11" y2="14" stroke-width="1.5" stroke-linecap="round"/>',
+  anydoc:   '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke-width="1.5"/><path d="M14 2v6h6" stroke-width="1.5"/><path d="M10 13l2-2 2 2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="11" x2="12" y2="17" stroke-width="1.5" stroke-linecap="round"/>',
 };
 
 let currentApp = null;

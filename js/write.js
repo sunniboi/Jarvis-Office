@@ -123,7 +123,7 @@ function initWrite(container) {
     if (!d) return;
     docId = id;
     setTitle(d.title);
-    editor.innerHTML = d.html || '';
+    editor.innerHTML = Strix.sanitizeHTML(d.html || '');
     markClean();
     countWords();
     editor.focus();
@@ -184,35 +184,134 @@ function initWrite(container) {
   // ── Auto-save ─────────────────────────────────────────────────────────────
   autoSaveTimer = setInterval(() => { if (dirty && docId) saveDoc(); }, 30000);
 
-  // ── Toolbar commands ──────────────────────────────────────────────────────
-  function execCmd(cmd, val = null) {
+  // ── Selection helpers ─────────────────────────────────────────────────────
+  function getSel() {
+    const s = window.getSelection();
+    return (s && s.rangeCount) ? s : null;
+  }
+
+  function getRange() {
+    const s = getSel();
+    return s ? s.getRangeAt(0) : null;
+  }
+
+  function restoreSelInNode(node) {
+    const r = document.createRange();
+    r.selectNodeContents(node);
+    r.collapse(false);
+    const s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+  }
+
+  // Wrap selection in <tag> or unwrap if already wrapped.
+  function formatInline(tagName) {
     editor.focus();
-    document.execCommand(cmd, false, val);
+    const range = getRange();
+    if (!range) return;
+    const tag = tagName.toLowerCase();
+
+    if (range.collapsed) { markDirty(); return; }
+
+    const container = range.commonAncestorContainer;
+    const existing = (container.nodeType === 1 ? container : container.parentElement)?.closest(tag);
+
+    if (existing && editor.contains(existing) && existing !== editor) {
+      const frag = document.createDocumentFragment();
+      while (existing.firstChild) frag.appendChild(existing.firstChild);
+      existing.replaceWith(frag);
+    } else {
+      const el = document.createElement(tagName);
+      try {
+        range.surroundContents(el);
+      } catch {
+        // Selection spans element boundaries — extract, wrap, reinsert
+        el.appendChild(range.extractContents());
+        range.insertNode(el);
+      }
+      restoreSelInNode(el);
+    }
     markDirty();
   }
 
+  // Set text-align on the nearest block containing the cursor/selection.
+  function formatAlign(align) {
+    editor.focus();
+    const range = getRange();
+    if (!range) return;
+    const node = range.commonAncestorContainer;
+    const el = node.nodeType === 3 ? node.parentElement : node;
+    const block = el.closest('p, h1, h2, h3, li, blockquote') || el;
+    if (!editor.contains(block) || block === editor) return;
+    block.style.textAlign = align;
+    markDirty();
+  }
+
+  // Replace the block element at cursor with a different tag (P / H1–H3).
+  function formatBlockTag(tagName) {
+    editor.focus();
+    const range = getRange();
+    if (!range) return;
+    const node = range.startContainer;
+    const el = node.nodeType === 3 ? node.parentElement : node;
+    const block = el.closest('p, h1, h2, h3, div') || el;
+    if (!editor.contains(block) || block === editor) return;
+    const newEl = document.createElement(tagName);
+    newEl.innerHTML = block.innerHTML;
+    if (block.style.cssText) newEl.style.cssText = block.style.cssText;
+    block.replaceWith(newEl);
+    restoreSelInNode(newEl);
+    markDirty();
+  }
+
+  // Wrap selection in <span style="font-size: Xpx">.
+  function formatFontSize(px) {
+    editor.focus();
+    const range = getRange();
+    if (!range || range.collapsed) return;
+    const span = document.createElement('span');
+    span.style.fontSize = px + 'px';
+    try {
+      range.surroundContents(span);
+    } catch {
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+    }
+    restoreSelInNode(span);
+    markDirty();
+  }
+
+  // ── Toolbar commands ──────────────────────────────────────────────────────
+  const INLINE_CMDS = { bold: 'STRONG', italic: 'EM', underline: 'U' };
+  // undo/redo: no clean Selection-API replacement for contenteditable history
+  const HISTORY_CMDS = new Set(['undo', 'redo']);
+  const ALIGN_CMDS = {
+    justifyLeft: 'left', justifyCenter: 'center', justifyRight: 'right',
+  };
+
   container.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => {
     btn.addEventListener('mousedown', e => {
-      e.preventDefault(); // keep focus in editor
-      execCmd(btn.dataset.cmd);
+      e.preventDefault();
+      const cmd = btn.dataset.cmd;
+      if (INLINE_CMDS[cmd]) {
+        formatInline(INLINE_CMDS[cmd]);
+      } else if (ALIGN_CMDS[cmd]) {
+        formatAlign(ALIGN_CMDS[cmd]);
+      } else if (HISTORY_CMDS.has(cmd)) {
+        editor.focus();
+        document.execCommand(cmd, false, null);
+        markDirty();
+      }
     });
   });
 
   container.querySelector('#write-heading').addEventListener('change', function () {
-    if (this.value) execCmd('formatBlock', this.value);
-    else execCmd('formatBlock', 'P');
+    formatBlockTag(this.value || 'P');
     this.value = '';
   });
 
   container.querySelector('#write-fontsize').addEventListener('change', function () {
-    execCmd('fontSize', 7);
-    // execCommand fontSize only supports 1-7; use span hack for exact px
-    const spans = editor.querySelectorAll('font[size="7"]');
-    spans.forEach(s => {
-      const sp = document.createElement('span');
-      sp.style.fontSize = this.value + 'px';
-      s.replaceWith(...(sp.append(...s.childNodes), [sp]));
-    });
+    formatFontSize(Number(this.value));
   });
 
   // ── Document events ───────────────────────────────────────────────────────

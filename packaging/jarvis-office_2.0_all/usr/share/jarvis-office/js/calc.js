@@ -47,10 +47,13 @@ function initCalc(container) {
   const titleEl  = container.querySelector('#calc-title');
   const dirtyEl  = container.querySelector('#calc-dirty');
   const statusEl = container.querySelector('#calc-status');
+  // Direkt-Cache: cellEls[r][c] → kein querySelector bei jedem Zugriff
+  let cellEls = [];
 
   // ── Build table skeleton ──────────────────────────────────────────────────
   function buildTable() {
     const frag = document.createDocumentFragment();
+    cellEls = [];
     // header row
     const hrow = document.createElement('tr');
     hrow.appendChild(document.createElement('th')); // corner
@@ -58,12 +61,12 @@ function initCalc(container) {
       const th = document.createElement('th');
       th.textContent = colToLetter(c);
       th.setAttribute('scope', 'col');
-      frag.appendChild(th); // temp; we'll add to hrow
       hrow.appendChild(th);
     }
     frag.appendChild(hrow);
     // data rows
     for (let r = 0; r < ROWS; r++) {
+      cellEls[r] = [];
       const row = document.createElement('tr');
       const rowH = document.createElement('th');
       rowH.textContent = r + 1;
@@ -76,6 +79,7 @@ function initCalc(container) {
         td.setAttribute('tabindex', '-1');
         td.setAttribute('role', 'gridcell');
         row.appendChild(td);
+        cellEls[r][c] = td;
       }
       frag.appendChild(row);
     }
@@ -84,7 +88,7 @@ function initCalc(container) {
   }
 
   function getCellEl(r, c) {
-    return table.querySelector(`td[data-r="${r}"][data-c="${c}"]`);
+    return cellEls[r]?.[c] ?? null;
   }
 
   // ── Cell key helper ───────────────────────────────────────────────────────
