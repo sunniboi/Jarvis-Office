@@ -170,7 +170,7 @@ function initAnyDoc(container) {
       reader.onload = e => {
         const blob = new Blob([e.target.result], { type: 'text/html' });
         currentObjectURL = URL.createObjectURL(blob);
-        viewerInner.innerHTML = `<iframe src="${currentObjectURL}" sandbox="allow-same-origin allow-scripts" style="width:100%;height:100%;border:none;background:#fff;"></iframe>`;
+        viewerInner.innerHTML = `<iframe src="${currentObjectURL}" sandbox="allow-scripts" style="width:100%;height:100%;border:none;background:#fff;"></iframe>`;
       };
       reader.readAsText(file);
     } else {
@@ -199,7 +199,7 @@ function initAnyDoc(container) {
     ).join('');
     viewerInner.innerHTML = `
       <div class="anydoc-code-wrap">
-        <div class="anydoc-code-lang">${ext.toUpperCase()}</div>
+        <div class="anydoc-code-lang">${escHtml(ext.toUpperCase().replace(/[^A-Z0-9]/g, ""))}</div>
         <table class="anydoc-code-table"><tbody>${numbered}</tbody></table>
       </div>`;
     statusEl.textContent = currentFile.name + ' · ' + lines.length + ' Zeilen';
