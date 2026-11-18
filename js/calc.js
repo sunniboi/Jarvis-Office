@@ -102,40 +102,97 @@ function initCalc(container) {
 
   function evalFormula(expr) {
     if (!expr.startsWith('=')) return isNaN(expr) ? expr : Number(expr) || expr;
-    let f = expr.slice(1).trim().toUpperCase();
     try {
-      // SUM(A1:B3)
-      f = f.replace(/SUM\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
-        let sum = 0;
-        const [r1, c1] = refToRC(a), [r2, c2] = refToRC(b);
-        for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) sum += Number(getCellVal(cellRef(r, c))) || 0;
-        return sum;
-      });
-      // AVG(A1:B3)
-      f = f.replace(/AVG\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
-        let sum = 0, cnt = 0;
-        const [r1, c1] = refToRC(a), [r2, c2] = refToRC(b);
-        for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) { sum += Number(getCellVal(cellRef(r, c))) || 0; cnt++; }
-        return cnt ? sum / cnt : 0;
-      });
-      // MAX / MIN
-      f = f.replace(/MAX\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
-        const vals = rangeVals(a, b); return vals.length ? Math.max(...vals) : 0;
-      });
-      f = f.replace(/MIN\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => {
-        const vals = rangeVals(a, b); return vals.length ? Math.min(...vals) : 0;
-      });
-      // COUNT
-      f = f.replace(/COUNT\(([A-Z]+\d+):([A-Z]+\d+)\)/g, (_, a, b) => rangeVals(a, b).filter(v => !isNaN(v)).length);
-      // Cell references
-      f = f.replace(/\b([A-Z]+\d+)\b/g, ref => {
-        const v = getCellVal(ref);
-        return typeof v === 'number' ? v : `"${v}"`;
-      });
-      // eslint-disable-next-line no-new-func
-      const result = Function('"use strict"; return (' + f + ')')();
-      return isNaN(result) ? result : Number(result.toFixed(10));
+      const p = new FormulaParser(expr.slice(1));
+      const v = p.parse();
+      if (typeof v !== 'number' || !isFinite(v)) return '#ERR';
+      return Number(v.toFixed(10));
     } catch { return '#ERR'; }
+  }
+
+  class FormulaParser {
+    constructor(src) {
+      this.tokens = src.toUpperCase().match(/[A-Z]+\d+:[A-Z]+\d+|[A-Z]+\d+|[A-Z]+|\d+(?:\.\d+)?|[-+*/^(),]|\s+/g) || [];
+      this.tokens = this.tokens.filter(t => !/^\s+$/.test(t));
+      this.joined = this.tokens.join('');
+      if (this.joined.length !== src.replace(/\s+/g, '').toUpperCase().length) throw new Error('bad');
+      this.i = 0;
+    }
+    peek() { return this.tokens[this.i]; }
+    next() { return this.tokens[this.i++]; }
+    parse() {
+      const v = this.expr();
+      if (this.i !== this.tokens.length) throw new Error('trailing');
+      return v;
+    }
+    expr() {
+      let v = this.term();
+      while (this.peek() === '+' || this.peek() === '-') {
+        const op = this.next(); const r = this.term();
+        v = op === '+' ? v + r : v - r;
+      }
+      return v;
+    }
+    term() {
+      let v = this.power();
+      while (this.peek() === '*' || this.peek() === '/') {
+        const op = this.next(); const r = this.power();
+        v = op === '*' ? v * r : v / r;
+      }
+      return v;
+    }
+    power() {
+      const base = this.unary();
+      if (this.peek() === '^') { this.next(); return Math.pow(base, this.power()); }
+      return base;
+    }
+    unary() {
+      if (this.peek() === '-') { this.next(); return -this.unary(); }
+      if (this.peek() === '+') { this.next(); return this.unary(); }
+      return this.primary();
+    }
+    primary() {
+      const t = this.next();
+      if (t === undefined) throw new Error('eof');
+      if (t === '(') { const v = this.expr(); if (this.next() !== ')') throw new Error('paren'); return v; }
+      if (/^\d/.test(t)) return Number(t);
+      if (/^[A-Z]+\d+:[A-Z]+\d+$/.test(t)) throw new Error('range outside function');
+      if (/^[A-Z]+\d+$/.test(t)) return numOf(t);
+      if (/^(SUM|AVERAGE|AVG|COUNT|MAX|MIN)$/.test(t) && this.peek() === '(') return this.call(t);
+      throw new Error('unknown ' + t);
+    }
+    call(name) {
+      this.next();
+      const vals = [];
+      if (this.peek() !== ')') {
+        do {
+          const t = this.peek();
+          if (t && /^[A-Z]+\d+:[A-Z]+\d+$/.test(t)) {
+            this.next();
+            const [a, b] = t.split(':');
+            rangeVals(a, b).forEach(x => vals.push(x));
+          } else {
+            vals.push(this.expr());
+          }
+        } while (this.peek() === ',' && this.next());
+      }
+      if (this.next() !== ')') throw new Error('call');
+      const nums = vals.filter(x => typeof x === 'number' && !isNaN(x));
+      switch (name) {
+        case 'SUM': return nums.reduce((a, b) => a + b, 0);
+        case 'AVERAGE': case 'AVG': return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+        case 'COUNT': return nums.length;
+        case 'MAX': return nums.length ? Math.max(...nums) : 0;
+        case 'MIN': return nums.length ? Math.min(...nums) : 0;
+      }
+      throw new Error('fn');
+    }
+  }
+
+  function numOf(ref) {
+    const v = getCellVal(ref);
+    if (typeof v !== 'number' || isNaN(v)) throw new Error('nonnumeric');
+    return v;
   }
 
   function rangeVals(a, b) {
