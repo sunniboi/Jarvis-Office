@@ -752,10 +752,11 @@ label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; display: 
   display: flex; flex-direction: column; overflow: hidden;
 }
 .agent-skills-header {
-  padding: 12px 14px 8px; font-size: 11px; font-weight: 600;
+  padding: 10px 14px 8px; font-size: 11px; font-weight: 600;
   text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint);
-  flex-shrink: 0;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
 }
+.btn-xs { padding: 2px 8px; font-size: 11px; border-radius: var(--r-sm); }
 .agent-skills-grid {
   flex: 1; overflow-y: auto; padding: 0 8px 8px; display: flex; flex-direction: column; gap: 4px;
 }
@@ -874,3 +875,26 @@ label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; display: 
   transition: border-color 120ms, color 120ms;
 }
 .am-copy-btn:hover { border-color: var(--accent); color: var(--accent-hi); }
+
+/* ── Skill Marktplatz ── */
+.skill-market-list { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.skill-market-cat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-faint); margin-bottom: 6px; padding: 0 2px; }
+.skill-market-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: var(--r-md); cursor: pointer;
+  border: 1px solid transparent; transition: background 100ms, border-color 100ms;
+}
+.skill-market-row:hover { background: var(--surface); }
+.skill-market-row.active { background: var(--surface-hi); border-color: var(--border-hi); }
+.skill-market-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+.skill-market-icon { flex-shrink: 0; }
+.skill-market-info { display: flex; flex-direction: column; }
+.skill-market-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.skill-market-desc { font-size: 11px; color: var(--text-faint); }
+
+/* ── TTS-Button ── */
+.agent-tts-btn {
+  padding: 0 10px; color: var(--text-muted);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.agent-tts-btn:hover { color: var(--app-agent); border-color: var(--app-agent); background: none; }
