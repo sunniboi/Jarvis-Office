@@ -91,3 +91,14 @@ Calendar: Farb-Picker für Termine,calendar,should,yes,no,
 Calendar: Mini-Kalender Sidebar,calendar,should,yes,no,
 Calendar: ICS Export,calendar,could,yes,no,
 Calendar: ICS Import,calendar,could,yes,no,
+AnyDoc: Datei öffnen (File-Picker),anydoc,must,no,yes,
+AnyDoc: Drag & Drop,anydoc,must,no,yes,
+AnyDoc: PDF-Viewer,anydoc,must,no,yes,Über Browser-embed
+AnyDoc: Bild-Viewer (PNG/JPG/GIF/SVG/WebP),anydoc,must,no,yes,
+AnyDoc: Text/Code-Viewer (mit Zeilennummern),anydoc,must,no,yes,
+AnyDoc: CSV/TSV-Viewer (Tabelle),anydoc,should,no,yes,
+AnyDoc: Markdown-Renderer,anydoc,should,no,yes,Minimal ohne externe Lib
+AnyDoc: HTML-Viewer (sandboxed iframe),anydoc,should,no,yes,
+AnyDoc: Zoom (Bild + PDF),anydoc,should,no,yes,Strg+/−/0
+AnyDoc: Drucken,anydoc,could,no,yes,
+AnyDoc: Zuletzt geöffnet (Verlauf),anydoc,could,no,yes,localStorage
