@@ -239,3 +239,7 @@ Alle Skills liegen unter `.claude/skills/`:
 Bei Design-Aufgaben gilt: ui-ux-pro-max entscheidet über Stil und Layout, die replica-design- und replica-brand-Skills verwalten die Design-Tokens. Beide nicht gegeneinander ausspielen.
 
 Die replica-Skills sind für eigene Projekte gedacht. Keine fremden Apps, Marken oder Designs kopieren.
+
+## Altes Paket 1.0
+
+`packaging/jarvis-office_1.0_all/` ist veraltet (ersetzt durch 2.x). Die dortige anydoc.js wurde am 18.11.2026 sicherheitlich korrigiert, sonst nichts geändert. Nicht mehr bauen. Entfernen erst nach Rücksprache mit dem Nutzer.
