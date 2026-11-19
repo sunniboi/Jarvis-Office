@@ -73,7 +73,7 @@ function initCalendar(container) {
       html += `<div class="cal-day${todayCls}" data-date="${ds}" tabindex="0" role="gridcell" aria-label="${d}. ${MONTHS[m]}">
         <span class="cal-day-num">${d}</span>
         <div class="cal-events-mini">
-          ${ev.slice(0, 3).map(e => `<div class="ev-dot" style="background:${e.color||'var(--accent)'}" title="${sanitize(e.title)}">${sanitize(e.title)}</div>`).join('')}
+          ${ev.slice(0, 3).map(e => `<div class="ev-dot" data-id="${e.id}" style="background:${e.color||'var(--accent)'}" title="${sanitize(e.title)}">${sanitize(e.title)}</div>`).join('')}
           ${ev.length > 3 ? `<div class="ev-more">+${ev.length - 3}</div>` : ''}
         </div>
       </div>`;
@@ -81,6 +81,7 @@ function initCalendar(container) {
     html += '</div>';
     body.innerHTML = html;
     bindDayClicks();
+    bindEventClicks();
     updateCount();
   }
 
