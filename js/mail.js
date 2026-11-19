@@ -8,6 +8,7 @@ function initMail(container) {
 
   const FOLDERS = [
     { id: 'inbox',  label: 'Eingang',   icon: 'mail'    },
+    { id: 'starred', label: 'Markiert',  icon: 'star'    },
     { id: 'sent',   label: 'Gesendet',  icon: 'forward' },
     { id: 'drafts', label: 'Entwürfe',  icon: 'save'    },
     { id: 'trash',  label: 'Papierkorb',icon: 'trash'   },
@@ -30,6 +31,8 @@ function initMail(container) {
         <button class="btn-icon back-btn" aria-label="Zurück">${icon('arrowLeft', 18)}</button>
         <span class="app-title">Jarvis Mail</span>
         <div class="titlebar-actions">
+          <button class="btn btn-ghost btn-sm" id="mail-read-all">Alle als gelesen</button>
+          <button class="btn btn-ghost btn-sm hidden" id="mail-empty-trash">${icon('trash', 14)} Papierkorb leeren</button>
           <button class="btn btn-primary btn-sm" id="mail-compose">${icon('filePlus', 15)} Neue Mail</button>
         </div>
       </div>
@@ -42,6 +45,7 @@ function initMail(container) {
             </button>`).join('')}
         </nav>
         <div class="mail-list-area">
+          <input type="search" id="mail-search" class="tb-search" placeholder="Suchen…" aria-label="Mails durchsuchen" />
           <div class="mail-list" id="mail-list" role="list" aria-label="Nachrichten"></div>
           <div class="mail-detail" id="mail-detail" aria-live="polite"></div>
         </div>
@@ -67,8 +71,11 @@ function initMail(container) {
 
   // ── Render list ───────────────────────────────────────────────────────────
   function renderList() {
-    const folderMsgs = messages.filter(m => m.folder === currentFolder)
+    const q = (container.querySelector('#mail-search')?.value || '').trim().toLowerCase();
+    const inFolder = m => currentFolder === 'starred' ? (m.starred && m.folder !== 'trash') : m.folder === currentFolder;
+    const folderMsgs = messages.filter(m => inFolder(m) && (!q || [m.from, m.to, m.subject, m.body].some(v => String(v || '').toLowerCase().includes(q))))
       .sort((a, b) => b.date - a.date);
+    container.querySelector('#mail-empty-trash')?.classList.toggle('hidden', currentFolder !== 'trash');
     mailList.innerHTML = '';
     if (!folderMsgs.length) {
       mailList.innerHTML = '<div class="mail-empty">Keine Nachrichten.</div>';
@@ -111,6 +118,8 @@ function initMail(container) {
         </div>
         <div class="mail-detail-actions">
           <button class="btn btn-ghost btn-sm" id="mail-reply">${icon('reply', 14)} Antworten</button>
+          <button class="btn btn-ghost btn-sm" id="mail-reply-all">Allen antworten</button>
+          <button class="btn btn-ghost btn-sm" id="mail-star">${icon('star', 14)} ${m.starred ? 'Markiert' : 'Markieren'}</button>
           <button class="btn btn-ghost btn-sm" id="mail-forward">${icon('forward', 14)} Weiterleiten</button>
           <button class="btn btn-ghost btn-sm" id="mail-trash-msg">${icon('trash', 14)} Löschen</button>
         </div>
@@ -118,6 +127,12 @@ function initMail(container) {
       <div class="mail-body">${Strix.sanitizeHTML(sanitize(m.body).replace(/\n/g, '<br>'))}</div>
     `;
     container.querySelector('#mail-reply')?.addEventListener('click', () => composeReply(m));
+    container.querySelector('#mail-reply-all')?.addEventListener('click', () => composeReplyAll(m));
+    container.querySelector('#mail-star')?.addEventListener('click', () => {
+      m.starred = !m.starred;
+      saveMail();
+      openMessage(m.id);
+    });
     container.querySelector('#mail-forward')?.addEventListener('click', () => composeForward(m));
     container.querySelector('#mail-trash-msg')?.addEventListener('click', () => trashMsg(m.id));
   }
@@ -196,6 +211,17 @@ function initMail(container) {
     });
   }
 
+  function composeReplyAll(orig) {
+    const others = String(orig.to || '').split(',').map(a => a.trim()).filter(a => a && a !== 'ich@lokal');
+    const recipients = [orig.from, ...others].filter((a, i, arr) => a && arr.indexOf(a) === i && a !== 'ich@lokal');
+    openCompose({
+      to: recipients.join(', '),
+      subject: orig.subject.startsWith('Re:') ? orig.subject : 'Re: ' + orig.subject,
+      body: `\n\n--- Original ---\nVon: ${orig.from}\n${orig.body}`,
+      replyTo: orig.id,
+    });
+  }
+
   function composeForward(orig) {
     openCompose({
       subject: orig.subject.startsWith('Fwd:') ? orig.subject : 'Fwd: ' + orig.subject,
@@ -216,6 +242,21 @@ function initMail(container) {
   });
 
   container.querySelector('#mail-compose').addEventListener('click', () => openCompose());
+  container.querySelector('#mail-search').addEventListener('input', () => renderList());
+  container.querySelector('#mail-read-all').addEventListener('click', () => {
+    const inFolder = m => currentFolder === 'starred' ? (m.starred && m.folder !== 'trash') : m.folder === currentFolder;
+    messages.filter(inFolder).forEach(m => { m.read = true; });
+    saveMail();
+    renderList();
+  });
+  container.querySelector('#mail-empty-trash').addEventListener('click', () => {
+    if (!confirm('Papierkorb endgültig leeren?')) return;
+    messages = messages.filter(m => m.folder !== 'trash');
+    selected = null;
+    saveMail();
+    mailDetail.innerHTML = '';
+    renderList();
+  });
   container.querySelector('.back-btn').addEventListener('click', goHome);
 
   updateBadges();
